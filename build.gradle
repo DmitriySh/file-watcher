@@ -1,0 +1,39 @@
+apply plugin: 'java'
+
+version = 0.1
+
+sourceCompatibility = 1.7
+
+buildDir = 'target'
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'ru.shishmakov.Server'
+    }
+}
+
+repositories{
+	mavenCentral()
+	mavenLocal()
+}
+
+dependencies {
+	compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.3'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.4'
+}
+
+task printVersion << {
+        logger.quiet "Version $version"
+}
+
+
+
+
+task runJar(dependsOn:jar) << {
+    javaexec { main="-jar"; args jar.archivePath } 
+}
+
+
