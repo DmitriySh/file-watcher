@@ -1,3 +1,4 @@
+# Java class files
 *.class
 
 # Eclipse
@@ -25,3 +26,4 @@ local.properties
 *.jar
 *.war
 *.ear
+
