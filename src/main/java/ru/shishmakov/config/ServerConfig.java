@@ -1,7 +1,7 @@
 package ru.shishmakov.config;
 
 
-import com.mchange.v2.c3p0.ComboPooledDataSource;
+import com.jolbox.bonecp.BoneCPDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -20,7 +20,6 @@ import ru.shishmakov.service.PackageMarkerService;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManagerFactory;
-import javax.sql.DataSource;
 import java.util.Properties;
 
 /**
@@ -38,21 +37,24 @@ public class ServerConfig {
     @Autowired
     private AppConfig config;
 
-    @Bean(destroyMethod = "close")
-    public DataSource dataSource() throws Exception {
-        ComboPooledDataSource cpds = new ComboPooledDataSource();
-        cpds.setDriverClass(config.getDbDriver());
-        cpds.setJdbcUrl(config.getDbUrl());
-        cpds.setUser(config.getDbUsername());
-        cpds.setPassword(config.getDbPassword());
+    @Bean(name = "dataSource", destroyMethod = "close")
+    public BoneCPDataSource dataSource() throws Exception {
+        BoneCPDataSource dataSource = new BoneCPDataSource();
+        dataSource.setDriverClass(config.getDbDriver());
+        dataSource.setJdbcUrl(config.getDbUrl());
+        dataSource.setUsername(config.getDbUsername());
+        dataSource.setPassword(config.getDbPassword());
 
-        // c3p0 can work with default values
-        cpds.setMinPoolSize(config.getDbPoolSizeMin());
-        cpds.setMaxPoolSize(config.getDbPoolSizeMax());
-        cpds.setAcquireIncrement(config.getDbPoolSizeIncrement());
-        cpds.setMaxStatements(config.getDbStatements());
-        cpds.setMaxIdleTime(3000);
-        return cpds;
+        dataSource.setIdleConnectionTestPeriodInMinutes(60);
+        dataSource.setIdleMaxAgeInMinutes(420);
+        dataSource.setReleaseHelperThreads(3);
+
+        dataSource.setPartitionCount(3);
+        dataSource.setMinConnectionsPerPartition(config.getDbPoolSizeMin());
+        dataSource.setMaxConnectionsPerPartition(config.getDbPoolSizeMax());
+        dataSource.setAcquireIncrement(config.getDbPoolSizeIncrement());
+        dataSource.setStatementsCacheSize(config.getDbStatements());
+        return dataSource;
     }
 
     @Bean
