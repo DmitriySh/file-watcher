@@ -1,5 +1,7 @@
 package ru.shishmakov;
 
+import org.apache.commons.lang3.StringUtils;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +23,41 @@ public class PropertyTest extends TestBase {
     private AppConfig config;
 
     @Test
-    public void testConfiguration() {
-        logger.info(this.getClass().getName() + " !!!");
+    public void configurationShouldNotBeEmpty() {
+        Assert.assertTrue("shouldn't be empty", StringUtils.isNotBlank(config.getDbUrl()));
+        Assert.assertTrue("shouldn't be empty", StringUtils.isNotBlank(config.getDbDriver()));
+        Assert.assertTrue("shouldn't be empty", StringUtils.isNotBlank(config.getDbPassword()));
+        Assert.assertTrue("shouldn't be empty", StringUtils.isNotBlank(config.getDbUsername()));
+    }
+
+    @Test
+    public void configurationShouldBe() {
+        Assert.assertNotNull("config should be", config.getDbPoolSizeMax());
+        Assert.assertNotNull("config should be", config.getDbPoolSizeMin());
+        Assert.assertNotNull("config should be", config.getDbPoolSizeIncrement());
+        Assert.assertNotNull("config should be", config.getDbDriver());
+        Assert.assertNotNull("config should be", config.getDbUrl());
+        Assert.assertNotNull("config should be", config.getDbPassword());
+        Assert.assertNotNull("config should be", config.getDbUsername());
+        Assert.assertNotNull("config should be", config.getDbStatements());
+    }
+
+    @Test
+    public void localPropertiesShouldOverrideValues() {
+        Assert.assertEquals(10, config.getDbStatements().intValue());
+        Assert.assertEquals(1, config.getDbPoolSizeMin().intValue());
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

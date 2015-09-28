@@ -1,12 +1,17 @@
 package ru.shishmakov;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import ru.shishmakov.config.AppConfig;
 import ru.shishmakov.config.ServerConfig;
+
+import javax.sql.DataSource;
+import java.beans.PropertyVetoException;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 /**
  * Test Database for project
@@ -18,10 +23,12 @@ import ru.shishmakov.config.ServerConfig;
 public class DbTest extends TestBase {
 
     @Autowired
-    private AppConfig config;
+    private DataSource dataSource;
 
     @Test
-    public void testConnection() {
-        logger.info(this.getClass().getName() + " !!!");
+    public void testConnection() throws SQLException, PropertyVetoException {
+        Connection connection = dataSource.getConnection();
+        Assert.assertNotNull(connection);
+        Assert.assertFalse("connection should be available", connection.isValid(5));
     }
 }
