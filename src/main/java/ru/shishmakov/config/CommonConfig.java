@@ -23,64 +23,45 @@ public class CommonConfig {
     @Bean
     public AppConfig appConfig() {
         return new AppConfig() {
+
             @Override
-            public String getProfileId() {
-                return environment.getRequiredProperty(ConfigKey.PROFILE_ID);
+            public String getDbDriver() {
+                return environment.getRequiredProperty(ConfigKey.DB_DRIVER);
             }
 
             @Override
-            public String getConnectionHost() {
-                return environment.getRequiredProperty(ConfigKey.CONNECT_HOST);
+            public String getDbUrl() {
+                return environment.getRequiredProperty(ConfigKey.DB_URL);
             }
 
             @Override
-            public Integer getConnectionPort() {
-                return environment.getRequiredProperty(ConfigKey.CONNECT_PORT, Integer.class);
+            public String getDbUsername() {
+                return environment.getRequiredProperty(ConfigKey.DB_USERNAME);
             }
 
             @Override
-            public String getConnectionUri() {
-                return environment.getRequiredProperty(ConfigKey.CONNECT_URI);
+            public String getDbPassword() {
+                return environment.getRequiredProperty(ConfigKey.DB_PASSWORD);
             }
 
             @Override
-            public String getDatabaseHost() {
-                return environment.getRequiredProperty(ConfigKey.DATABASE_HOST);
+            public Integer getDbPoolSizeMin() {
+                return environment.getRequiredProperty(ConfigKey.DB_POOL_SIZE_MIN, Integer.class);
             }
 
             @Override
-            public Integer getDatabasePort() {
-                return environment.getRequiredProperty(ConfigKey.DATABASE_PORT, Integer.class);
+            public Integer getDbPoolSizeMax() {
+                return environment.getRequiredProperty(ConfigKey.DB_POOL_SIZE_MAX, Integer.class);
             }
 
             @Override
-            public String getDatabaseName() {
-                return environment.getRequiredProperty(ConfigKey.DATABASE_NAME);
+            public Integer getDbPoolSizeIncrement() {
+                return environment.getRequiredProperty(ConfigKey.DB_POOL_SIZE_INCREMENT, Integer.class);
             }
 
             @Override
-            public String getCollectionName() {
-                return environment.getRequiredProperty(ConfigKey.COLLECTION_NAME);
-            }
-
-            @Override
-            public String getDatabaseUser() {
-                return environment.getRequiredProperty(ConfigKey.DATABASE_USER);
-            }
-
-            @Override
-            public String getDatabasePassword() {
-                return environment.getRequiredProperty(ConfigKey.DATABASE_PASSWORD);
-            }
-
-            @Override
-            public String getBindHost() {
-                return environment.getRequiredProperty(ConfigKey.BIND_HOST);
-            }
-
-            @Override
-            public Integer getBindPort() {
-                return environment.getRequiredProperty(ConfigKey.BIND_PORT, Integer.class);
+            public Integer getDbStatements() {
+                return environment.getRequiredProperty(ConfigKey.DB_STATEMENTS, Integer.class);
             }
         };
     }

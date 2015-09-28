@@ -5,28 +5,20 @@ package ru.shishmakov.config;
  */
 public interface AppConfig {
 
-    String getProfileId();
+    String getDbDriver();
 
-    String getConnectionHost();
+    String getDbUrl();
 
-    Integer getConnectionPort();
+    String getDbUsername();
 
-    String getConnectionUri();
+    String getDbPassword();
 
-    String getDatabaseHost();
+    Integer getDbPoolSizeMin();
 
-    Integer getDatabasePort();
+    Integer getDbPoolSizeMax();
 
-    String getDatabaseName();
+    Integer getDbPoolSizeIncrement();
 
-    String getCollectionName();
-
-    String getDatabaseUser();
-
-    String getDatabasePassword();
-
-    String getBindHost();
-
-    Integer getBindPort();
+    Integer getDbStatements();
 
 }

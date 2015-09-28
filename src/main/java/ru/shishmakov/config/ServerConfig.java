@@ -41,16 +41,16 @@ public class ServerConfig {
     @Bean(destroyMethod = "close")
     public DataSource dataSource() throws Exception {
         ComboPooledDataSource cpds = new ComboPooledDataSource();
-        cpds.setDriverClass("org.postgresql.Driver");
-        cpds.setJdbcUrl("jdbc:postgresql://localhost:5432/" + config.getDatabaseName());
-        cpds.setUser("postgres");
-        cpds.setPassword("postgres");
+        cpds.setDriverClass(config.getDbDriver());
+        cpds.setJdbcUrl(config.getDbUrl());
+        cpds.setUser(config.getDbUsername());
+        cpds.setPassword(config.getDbPassword());
 
-        // the settings below are optional -- c3p0 can work with defaults
-        cpds.setMinPoolSize(5);
-        cpds.setMaxPoolSize(20);
-        cpds.setAcquireIncrement(5);
-        cpds.setMaxStatements(50);
+        // c3p0 can work with default values
+        cpds.setMinPoolSize(config.getDbPoolSizeMin());
+        cpds.setMaxPoolSize(config.getDbPoolSizeMax());
+        cpds.setAcquireIncrement(config.getDbPoolSizeIncrement());
+        cpds.setMaxStatements(config.getDbStatements());
         cpds.setMaxIdleTime(3000);
         return cpds;
     }
@@ -86,7 +86,6 @@ public class ServerConfig {
         properties.setProperty("hibernate.cache.use_second_level_cache", "true");
         properties.setProperty("hibernate.cache.region.factory_class", "org.hibernate.cache.ehcache.EhCacheRegionFactory");
         properties.setProperty("hibernate.cache.use_query_cache", "true");
-        properties.setProperty("hibernate.generate_statistics", "true");
         properties.setProperty("hibernate.generate_statistics", "true");
         return properties;
     }
