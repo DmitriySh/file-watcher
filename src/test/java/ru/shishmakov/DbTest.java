@@ -29,6 +29,6 @@ public class DbTest extends TestBase {
     public void testConnection() throws SQLException, PropertyVetoException {
         Connection connection = dataSource.getConnection();
         Assert.assertNotNull(connection);
-        Assert.assertFalse("connection should be available", connection.isValid(5));
+        Assert.assertTrue("connection should be available", connection.isValid(5));
     }
 }
