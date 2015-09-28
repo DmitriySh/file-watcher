@@ -1,6 +1,7 @@
 package ru.shishmakov.entity;
 
 import org.joda.time.DateTime;
+import org.joda.time.LocalDateTime;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -33,9 +34,9 @@ public class Entry implements Serializable {
     @Basic
     private String content;
 
-    @Column(name = "update_time", nullable = true, insertable = true, updatable = true)
-    @org.hibernate.annotations.Type(type = "org.jadira.usertype.dateandtime.joda.PersistentDateTime")
-    private DateTime createTime;
+    @Column(name = "creation_date", nullable = true, insertable = true, updatable = true)
+    @org.hibernate.annotations.Type(type = "org.jadira.usertype.dateandtime.joda.PersistentLocalDateTime")
+    private LocalDateTime creationDate;
 
     public Entry() {
     }
@@ -64,12 +65,12 @@ public class Entry implements Serializable {
         this.content = content;
     }
 
-    public DateTime getCreateTime() {
-        return createTime;
+    public LocalDateTime getCreationDate() {
+        return creationDate;
     }
 
-    public void setCreateTime(DateTime createTime) {
-        this.createTime = createTime;
+    public void setCreationDate(LocalDateTime creationDate) {
+        this.creationDate = creationDate;
     }
 
     @Override
