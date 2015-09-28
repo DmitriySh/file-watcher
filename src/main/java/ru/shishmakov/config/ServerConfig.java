@@ -84,8 +84,9 @@ public class ServerConfig {
     private Properties getJpaProperties() {
         Properties properties = new Properties();
         properties.setProperty("hibernate.cache.use_second_level_cache", "true");
-        properties.setProperty("hibernate.cache.region.factory_class", "org.hibernate.cache.ehcache.EhCacheRegionFactory");
         properties.setProperty("hibernate.cache.use_query_cache", "true");
+        properties.setProperty("hibernate.cache.region.factory_class", "org.hibernate.cache.ehcache.EhCacheRegionFactory");
+        properties.setProperty("hibernate.cache.provider_configuration_file_resource_path", "classpath:ehcache.xml");
         properties.setProperty("hibernate.generate_statistics", "true");
         return properties;
     }
