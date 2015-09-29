@@ -21,4 +21,5 @@ public interface AppConfig {
 
     Integer getDbStatements();
 
+    String getDirectoryPath();
 }

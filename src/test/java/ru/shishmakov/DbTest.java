@@ -9,7 +9,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import ru.shishmakov.config.ServerConfig;
 
 import javax.sql.DataSource;
-import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -26,7 +25,7 @@ public class DbTest extends TestBase {
     private DataSource dataSource;
 
     @Test
-    public void testConnection() throws SQLException, PropertyVetoException {
+    public void testConnection() throws SQLException {
         Connection connection = dataSource.getConnection();
         Assert.assertNotNull(connection);
         Assert.assertTrue("connection should be available", connection.isValid(5));

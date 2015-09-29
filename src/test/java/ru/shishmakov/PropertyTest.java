@@ -28,6 +28,7 @@ public class PropertyTest extends TestBase {
         Assert.assertTrue("shouldn't be empty", StringUtils.isNotBlank(config.getDbDriver()));
         Assert.assertTrue("shouldn't be empty", StringUtils.isNotBlank(config.getDbPassword()));
         Assert.assertTrue("shouldn't be empty", StringUtils.isNotBlank(config.getDbUsername()));
+        Assert.assertTrue("shouldn't be empty", StringUtils.isNotBlank(config.getDirectoryPath()));
     }
 
     @Test
@@ -40,6 +41,7 @@ public class PropertyTest extends TestBase {
         Assert.assertNotNull("config should be", config.getDbPassword());
         Assert.assertNotNull("config should be", config.getDbUsername());
         Assert.assertNotNull("config should be", config.getDbStatements());
+        Assert.assertNotNull("config should be", config.getDirectoryPath());
     }
 
     @Test

@@ -1,5 +1,6 @@
 package ru.shishmakov.config;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -62,6 +63,18 @@ public class CommonConfig {
             @Override
             public Integer getDbStatements() {
                 return environment.getRequiredProperty(ConfigKey.DB_STATEMENTS, Integer.class);
+            }
+
+            @Override
+            public String getDirectoryPath() {
+                final String path = environment.getRequiredProperty(ConfigKey.DB_STATEMENTS);
+                if(StringUtils.startsWithIgnoreCase(path, "{user.home}")) {
+                    return StringUtils.replaceOnce(path,"{user.home}", System.getProperty("user.home"));
+                }
+                if(StringUtils.startsWithIgnoreCase(path, "{user.dir}")) {
+                    return StringUtils.replaceOnce(path,"{user.dir}", System.getProperty("user.dir"));
+                }
+                return path;
             }
         };
     }

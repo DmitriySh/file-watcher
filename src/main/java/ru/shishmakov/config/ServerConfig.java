@@ -2,6 +2,8 @@ package ru.shishmakov.config;
 
 
 import com.jolbox.bonecp.BoneCPDataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -20,7 +22,11 @@ import ru.shishmakov.service.PackageMarkerService;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManagerFactory;
+import java.lang.invoke.MethodHandles;
+import java.nio.file.Path;
 import java.util.Properties;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * Extension of configuration for Server
@@ -34,12 +40,14 @@ import java.util.Properties;
 @EnableTransactionManagement(proxyTargetClass = true)
 public class ServerConfig {
 
+    private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
+
     @Autowired
     private AppConfig config;
 
     @Bean(name = "dataSource", destroyMethod = "close")
-    public BoneCPDataSource dataSource() throws Exception {
-        BoneCPDataSource dataSource = new BoneCPDataSource();
+    public BoneCPDataSource dataSource() {
+        final BoneCPDataSource dataSource = new BoneCPDataSource();
         dataSource.setDriverClass(config.getDbDriver());
         dataSource.setJdbcUrl(config.getDbUrl());
         dataSource.setUsername(config.getDbUsername());
@@ -58,15 +66,15 @@ public class ServerConfig {
     }
 
     @Bean
-    public EntityManagerFactory entityManagerFactory() throws Exception {
-        HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+    public EntityManagerFactory entityManagerFactory() {
+        final HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
         vendorAdapter.setGenerateDdl(false);
         vendorAdapter.setShowSql(true);
         vendorAdapter.setDatabasePlatform("org.hibernate.dialect.PostgreSQL9Dialect");
         vendorAdapter.setDatabase(Database.POSTGRESQL);
         vendorAdapter.getJpaPropertyMap().put("hibernate.format_sql", "true");
 
-        LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
+        final LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
         factory.setJpaVendorAdapter(vendorAdapter);
         factory.setPackagesToScan(getMappingBasePackage());
         factory.setDataSource(dataSource());
@@ -76,15 +84,30 @@ public class ServerConfig {
     }
 
     @Bean
-    public JpaTransactionManager transactionManager() throws Exception {
-        JpaTransactionManager txManager = new JpaTransactionManager();
+    public JpaTransactionManager transactionManager() {
+        final JpaTransactionManager txManager = new JpaTransactionManager();
         txManager.setEntityManagerFactory(entityManagerFactory());
         txManager.setJpaDialect(new HibernateJpaDialect());
         return txManager;
     }
 
+    @Bean
+    public BlockingQueue<Path> directoryFileQueue() {
+        return new ArrayBlockingQueue<>(1024);
+    }
+
+    @Bean
+    public BlockingQueue<Path> successFileQueue() {
+        return new ArrayBlockingQueue<>(1024);
+    }
+
+    @Bean
+    public BlockingQueue<Path> failFileQueue() {
+        return new ArrayBlockingQueue<>(1024);
+    }
+
     private Properties getJpaProperties() {
-        Properties properties = new Properties();
+        final Properties properties = new Properties();
         properties.setProperty("hibernate.cache.use_second_level_cache", "true");
         properties.setProperty("hibernate.cache.use_query_cache", "true");
         properties.setProperty("hibernate.cache.region.factory_class", "org.hibernate.cache.ehcache.EhCacheRegionFactory");

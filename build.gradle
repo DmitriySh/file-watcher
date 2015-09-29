@@ -11,7 +11,7 @@ buildDir = 'target'
 
 jar {
     manifest {
-        attributes 'Main-Class': 'ru.shishmakov.Server'
+        attributes 'Main-Class': 'ru.shishmakov.Main'
     }
 }
 

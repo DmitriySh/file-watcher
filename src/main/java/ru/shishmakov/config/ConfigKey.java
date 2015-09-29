@@ -16,4 +16,6 @@ public interface ConfigKey {
     String DB_POOL_SIZE_MAX = "db.poolsize.max";
     String DB_POOL_SIZE_INCREMENT = "db.poolsize.increment";
     String DB_STATEMENTS = "db.statements";
+
+    String DIRECTORY_PATH = "directory.path";
 }
