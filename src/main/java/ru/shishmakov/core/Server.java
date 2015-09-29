@@ -3,14 +3,10 @@ package ru.shishmakov.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 import org.springframework.stereotype.Component;
 
 import javax.sql.DataSource;
 import java.lang.invoke.MethodHandles;
-import java.sql.Connection;
 import java.util.concurrent.Exchanger;
 
 /**
@@ -44,15 +40,17 @@ public class Server {
                 System.getProperty("user.home"));
     }
 
-    public void stop(ConfigurableApplicationContext context) {
+    public void stop() {
         logger.debug("Finalization server ...");
-        context.close();
+
         logger.info("Shutdown the server: {}", System.getProperty("user.home"));
     }
 
-    public void await() throws InterruptedException {
-        exchanger.exchange("I wait you!");
-        logger.debug("Shutdown hook has been received");
+    public void await() {
+        try {
+            exchanger.exchange("I wait you!");
+        } catch (InterruptedException ignored) {
+        }
     }
 
     public boolean checkDbConnection() {

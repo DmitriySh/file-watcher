@@ -27,3 +27,7 @@ local.properties
 *.war
 *.ear
 
+# Project files
+log_test.txt
+log.txt
+

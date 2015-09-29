@@ -19,26 +19,16 @@ public class Main {
 
     public static void main(String[] args) {
         Server server = null;
-        AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext();
-        try {
+        try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
             context.register(ServerConfig.class);
             context.refresh();
 
             server = context.getBean(Server.class);
             server.start();
             server.await();
-            System.out.println("after await");
-        } catch (Throwable e) {
+            server.stop();
+        } catch (Exception e) {
             logger.error("The server failure: " + e.getMessage(), e);
-        }finally {
-            System.out.println("finally");
-            // spring context already closed
-            if(server != null){
-                server.stop(context);
-            }else {
-                logger.info("NULLLLLLLLLL");
-            }
         }
-        System.out.println("after try");
     }
 }
