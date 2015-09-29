@@ -3,6 +3,7 @@ package ru.shishmakov.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.shishmakov.config.AppConfig;
 
@@ -12,20 +13,29 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.*;
 import java.sql.DatabaseMetaData;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * Manage life cycle of File Watch server.
+ * Manage life cycle of File Watch Server.
  *
  * @author Dmitriy Shishmakov
  */
-@Component
+@Component("server")
 public class Server {
 
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     @Autowired
     private DataSource dataSource;
+
+    @Autowired
+    @Qualifier("fileWatcher")
+    private DirectoryFileWatcher watcher;
+
+    @Autowired
+    @Qualifier("eventExecutor")
+    private ExecutorService executor;
 
     @Autowired
     private AppConfig config;
@@ -45,6 +55,8 @@ public class Server {
             }
             // directory
             final Path path = checkDirectory();
+            // watcher task
+            executor.execute(buildTask(path));
             logger.info("Start the server: {}. Watch on: {}", this.getClass().getSimpleName(), path);
         } catch (Throwable e) {
             logger.error("Error starting the server:", e);
@@ -119,6 +131,15 @@ public class Server {
         } catch (IOException ignored) {
         }
         return false;
+    }
+
+    private Runnable buildTask(final Path path) {
+        return new Runnable() {
+            @Override
+            public void run() {
+                watcher.start(path);
+            }
+        };
     }
 
     private void registerShutdownHook() {

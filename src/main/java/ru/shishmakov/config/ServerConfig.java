@@ -25,8 +25,7 @@ import javax.persistence.EntityManagerFactory;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.Properties;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.*;
 
 /**
  * Extension of configuration for Server
@@ -45,7 +44,7 @@ public class ServerConfig {
     @Autowired
     private AppConfig config;
 
-    @Bean(name = "dataSource", destroyMethod = "close")
+    @Bean(destroyMethod = "close")
     public BoneCPDataSource dataSource() {
         final BoneCPDataSource dataSource = new BoneCPDataSource();
         dataSource.setDriverClass(config.getDbDriver());
@@ -104,6 +103,19 @@ public class ServerConfig {
     @Bean
     public BlockingQueue<Path> failFileQueue() {
         return new ArrayBlockingQueue<>(1024);
+    }
+
+    @Bean(name = "eventExecutor", destroyMethod = "close")
+    public ExecutorService eventExecutor() {
+        return new ThreadPoolExecutor(0, 100, 60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>()) {
+            public void close() {
+                try {
+                    super.shutdown();
+                    super.awaitTermination(3, TimeUnit.SECONDS);
+                } catch (InterruptedException ignored) {
+                }
+            }
+        };
     }
 
     private Properties getJpaProperties() {
