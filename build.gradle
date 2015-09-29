@@ -9,12 +9,6 @@ targetCompatibility = 1.7
 
 buildDir = 'target'
 
-jar {
-    manifest {
-        attributes 'Main-Class': 'ru.shishmakov.Main'
-    }
-}
-
 repositories {
     mavenCentral()
     mavenLocal()
@@ -58,7 +52,15 @@ task printVersion << {
     logger.quiet "Version $version"
 }
 
-//run target jar
-task runJar(dependsOn: jar) << {
-    javaexec { main = "-jar"; args jar.archivePath }
+//create a single Jar with all dependencies
+jar {
+    baseName = project.name + '-all'
+    manifest {
+        attributes 'Implementation-Title': 'File Watcher Server assembled by Gradle',
+                'Implementation-Version': version,
+                'Main-Class': 'ru.shishmakov.Main'
+    }
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
 }
+
+
