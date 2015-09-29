@@ -67,7 +67,7 @@ public class CommonConfig {
 
             @Override
             public String getDirectoryPath() {
-                final String path = environment.getRequiredProperty(ConfigKey.DB_STATEMENTS);
+                final String path = environment.getRequiredProperty(ConfigKey.DIRECTORY_PATH);
                 if(StringUtils.startsWithIgnoreCase(path, "{user.home}")) {
                     return StringUtils.replaceOnce(path,"{user.home}", System.getProperty("user.home"));
                 }

@@ -18,15 +18,13 @@ public class Main {
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     public static void main(String[] args) {
-        Server server = null;
         try (AnnotationConfigApplicationContext context = new AnnotationConfigApplicationContext()) {
             context.register(ServerConfig.class);
             context.refresh();
 
-            server = context.getBean(Server.class);
+            final Server server = context.getBean(Server.class);
             server.start();
             server.await();
-            server.stop();
         } catch (Exception e) {
             logger.error("The server failure: " + e.getMessage(), e);
         }
