@@ -1,5 +1,7 @@
 package ru.shishmakov.core;
 
+import com.google.common.collect.Maps;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +15,13 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.*;
 import java.sql.DatabaseMetaData;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static ru.shishmakov.util.SymlinkLoops.isSymbolicLinkLoop;
 
 /**
  * Manage life cycle of File Watch Server.
@@ -68,7 +75,7 @@ public class Server {
     public void stop() {
         logger.debug("Finalization server ...");
 
-        logger.info("Shutdown the server: {}", System.getProperty("user.home"));
+        logger.info("Shutdown the server: {}", this.getClass().getSimpleName());
     }
 
     public void await() {
@@ -102,35 +109,18 @@ public class Server {
         if (isSymbolicLinkLoop(path)) {
             throw new SymbolicLinkLoopException("Target directory shouldn't be a symlink loop");
         }
-
+        if (Files.exists(path) && Files.isRegularFile(path)) {
+            throw new DirectoryException(String.format("This is not a directory: '%s'", path));
+        }
         try {
             Files.createDirectories(path.resolve("success"));
             Files.createDirectories(path.resolve("fail"));
         } catch (IOException e) {
             final String message = String.format("Directories 'success'/'fail' can't be created in: '%s'", path);
-            throw new CreateDirectoryException(message, e);
+            throw new DirectoryException(message, e);
         }
         logger.info("Directory path: {}", path);
         return path;
-    }
-
-    private boolean isSymbolicLinkLoop(Path path) {
-        if (!Files.isSymbolicLink(path)) {
-            return false;
-        }
-
-        logger.debug("Check symlink ... ");
-        try {
-            final Path link = path.normalize();
-            final Path target = Files.readSymbolicLink(path);
-            logger.debug("Target of link \'{}\' -> \'{}\'", link, target);
-            if (link.toString().equalsIgnoreCase(Files.readSymbolicLink(target).toString())) {
-                logger.debug("Loop symlink \'{}\' -> \'{}\'", target, Files.readSymbolicLink(target));
-                return true;
-            }
-        } catch (IOException ignored) {
-        }
-        return false;
     }
 
     private Runnable buildTask(final Path path) {
