@@ -11,12 +11,16 @@ import ru.shishmakov.core.exception.DirectoryException;
 import ru.shishmakov.core.exception.SymbolicLinkLoopException;
 
 import javax.annotation.PreDestroy;
+import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.*;
 import java.sql.DatabaseMetaData;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static ru.shishmakov.util.SymlinkLoops.isSymbolicLinkLoop;
@@ -37,9 +41,22 @@ public class Server {
     @Autowired
     private DirectoryFileWatcher watcher;
 
+    @Resource(name = "directoryQueue")
+    private BlockingQueue<Path> directoryQueue;
+
+    @Resource(name = "successQueue")
+    private BlockingQueue<Path> successQueue;
+
+    @Resource(name = "failQueue")
+    private BlockingQueue<Path> failQueue;
+
     @Autowired
     @Qualifier("eventExecutor")
     private ExecutorService executor;
+
+    @Autowired
+    @Qualifier("scheduledExecutor")
+    public ScheduledExecutorService scheduled;
 
     @Autowired
     private AppConfig config;
@@ -60,8 +77,12 @@ public class Server {
             }
             // directory
             final Path path = checkDirectory();
+            // load factor of queues
+            runLoadFactorTask(directoryQueue, "directoryQueue");
+            runLoadFactorTask(successQueue, "successQueue");
+            runLoadFactorTask(failQueue, "failQueue");
             // watcher task
-            executor.execute(buildTask(path));
+            runWatcherTask(path);
             logger.info("Start the server: {}. Watch on: {}", this.getClass().getSimpleName(), path);
         } catch (Throwable e) {
             logger.error("Error starting the server", e);
@@ -100,6 +121,18 @@ public class Server {
         return false;
     }
 
+    private void runLoadFactorTask(final BlockingQueue<Path> queue, final String nameQueue) {
+        scheduled.scheduleWithFixedDelay(new Runnable() {
+            @Override
+            public void run() {
+                final int size = queue.size();
+                final int capacity = queue.remainingCapacity() + size;
+                final int percent = size * 100 / capacity;
+                logger.debug("{}: {}/{} = {}%", nameQueue, size, capacity, percent);
+            }
+        }, 5, 5, TimeUnit.SECONDS);
+    }
+
     private Path checkDirectory() {
         logger.debug("Check directory ... ");
 
@@ -121,13 +154,13 @@ public class Server {
         return path;
     }
 
-    private Runnable buildTask(final Path path) {
-        return new Runnable() {
+    private void runWatcherTask(final Path path) {
+        executor.execute(new Runnable() {
             @Override
             public void run() {
                 watcher.start(path);
             }
-        };
+        });
     }
 
     private void registerShutdownHook() {

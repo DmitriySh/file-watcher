@@ -91,17 +91,17 @@ public class ServerConfig {
         return txManager;
     }
 
-    @Bean
+    @Bean(name = "directoryQueue")
     public BlockingQueue<Path> directoryQueue() {
         return new ArrayBlockingQueue<>(1024);
     }
 
-    @Bean
+    @Bean(name = "successQueue")
     public BlockingQueue<Path> successQueue() {
         return new ArrayBlockingQueue<>(1024);
     }
 
-    @Bean
+    @Bean(name = "failQueue")
     public BlockingQueue<Path> failQueue() {
         return new ArrayBlockingQueue<>(1024);
     }
@@ -114,6 +114,20 @@ public class ServerConfig {
     @Bean(name = "eventExecutor", destroyMethod = "close")
     public ExecutorService eventExecutor() {
         return new ThreadPoolExecutor(0, 100, 60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>()) {
+            public void close() {
+                try {
+                    super.shutdown();
+                    super.awaitTermination(3, TimeUnit.SECONDS);
+                } catch (InterruptedException ignored) {
+                }
+            }
+        };
+    }
+
+    @Bean(name = "scheduledExecutor", destroyMethod = "close")
+    public ScheduledExecutorService scheduledExecutor() {
+        final int corePoolSize = Runtime.getRuntime().availableProcessors() * 2;
+        return new ScheduledThreadPoolExecutor(corePoolSize) {
             public void close() {
                 try {
                     super.shutdown();
