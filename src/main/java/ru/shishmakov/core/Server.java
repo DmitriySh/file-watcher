@@ -1,13 +1,14 @@
 package ru.shishmakov.core;
 
-import com.google.common.collect.Maps;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import ru.shishmakov.config.AppConfig;
+import ru.shishmakov.core.exception.ConnectionlessException;
+import ru.shishmakov.core.exception.DirectoryException;
+import ru.shishmakov.core.exception.SymbolicLinkLoopException;
 
 import javax.annotation.PreDestroy;
 import javax.sql.DataSource;
@@ -15,9 +16,6 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.*;
 import java.sql.DatabaseMetaData;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -37,7 +35,6 @@ public class Server {
     private DataSource dataSource;
 
     @Autowired
-    @Qualifier("fileWatcher")
     private DirectoryFileWatcher watcher;
 
     @Autowired
@@ -47,7 +44,8 @@ public class Server {
     @Autowired
     private AppConfig config;
 
-    private final AtomicBoolean await = new AtomicBoolean(true);
+    @Autowired
+    private AtomicBoolean lock;
 
     public void start() throws InterruptedException {
         logger.debug("Initialise server ...");
@@ -66,8 +64,8 @@ public class Server {
             executor.execute(buildTask(path));
             logger.info("Start the server: {}. Watch on: {}", this.getClass().getSimpleName(), path);
         } catch (Throwable e) {
-            logger.error("Error starting the server:", e);
-            await.set(false);
+            logger.error("Error starting the server", e);
+            lock.compareAndSet(true, false);
         }
     }
 
@@ -79,7 +77,7 @@ public class Server {
     }
 
     public void await() {
-        while (await.get()) {
+        while (lock.get()) {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException ignored) {
@@ -136,7 +134,7 @@ public class Server {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
-                await.compareAndSet(true, false);
+                lock.compareAndSet(true, false);
                 logger.debug("Shutdown hook has been invoked");
             }
         });

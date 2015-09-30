@@ -1,4 +1,4 @@
-package ru.shishmakov.core;
+package ru.shishmakov.core.exception;
 
 /**
  * @author Dmitriy Shishmakov

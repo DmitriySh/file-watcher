@@ -26,6 +26,7 @@ import java.lang.invoke.MethodHandles;
 import java.nio.file.Path;
 import java.util.Properties;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Extension of configuration for Server
@@ -91,18 +92,23 @@ public class ServerConfig {
     }
 
     @Bean
-    public BlockingQueue<Path> directoryFileQueue() {
+    public BlockingQueue<Path> directoryQueue() {
         return new ArrayBlockingQueue<>(1024);
     }
 
     @Bean
-    public BlockingQueue<Path> successFileQueue() {
+    public BlockingQueue<Path> successQueue() {
         return new ArrayBlockingQueue<>(1024);
     }
 
     @Bean
-    public BlockingQueue<Path> failFileQueue() {
+    public BlockingQueue<Path> failQueue() {
         return new ArrayBlockingQueue<>(1024);
+    }
+
+    @Bean
+    public AtomicBoolean lock() {
+        return new AtomicBoolean(true);
     }
 
     @Bean(name = "eventExecutor", destroyMethod = "close")
