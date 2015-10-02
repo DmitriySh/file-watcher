@@ -1,11 +1,13 @@
 package ru.shishmakov.entity;
 
-import org.joda.time.DateTime;
 import org.joda.time.LocalDateTime;
 
 import javax.persistence.*;
 import java.io.Serializable;
 
+/**
+ * @author Dmitriy Shishmakov
+ */
 @Entity
 @Table(name = "entry")
 @NamedQueries(value = {

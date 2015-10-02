@@ -3,6 +3,7 @@ package ru.shishmakov.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import ru.shishmakov.entity.Entry;
 
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
@@ -23,7 +24,7 @@ public class FilePersist {
     private static final AtomicInteger quantity = new AtomicInteger(0);
 
     @Resource(name = "successQueue")
-    private BlockingQueue<Path> successQueue;
+    private BlockingQueue<Entry> successQueue;
 
     @Autowired
     private AtomicBoolean serverLock;
@@ -35,7 +36,8 @@ public class FilePersist {
         logger.info("Initialise file persist {} ...", number);
         try {
             while (lock.get()) {
-                // start
+                final Entry file = successQueue.take();
+
             }
         } catch (Exception e) {
             logger.error("Error", e);

@@ -4,10 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.*;
+import org.xml.sax.helpers.DefaultHandler;
+import ru.shishmakov.entity.Entry;
 import ru.shishmakov.util.SymlinkLoops;
 
 import javax.annotation.Resource;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
 import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.SchemaFactory;
@@ -37,7 +40,7 @@ public class FileParser {
     private BlockingQueue<Path> directoryQueue;
 
     @Resource(name = "successQueue")
-    private BlockingQueue<Path> successQueue;
+    private BlockingQueue<Entry> successQueue;
 
     @Autowired
     private AtomicBoolean serverLock;
@@ -91,19 +94,60 @@ public class FileParser {
             final XMLReader reader = factory.newSAXParser().getXMLReader();
             reader.setErrorHandler(new TestErrorHandler());
             reader.parse(new InputSource(Files.newBufferedReader(file, StandardCharsets.UTF_8)));
-            moveToNextQueue(file);
+            final Entry entry = buildEntry(factory, file);
+            moveToNextQueue(entry);
         } catch (SAXException | ParserConfigurationException | IOException e) {
             notProcessed(file, "schema is not valid");
         }
     }
 
-    private void moveToNextQueue(Path file) throws InterruptedException {
+    private Entry buildEntry(SAXParserFactory factory, Path file) throws
+            ParserConfigurationException, SAXException, IOException {
+        final Entry entry = new Entry();
+        final SAXParser parser = factory.newSAXParser();
+        parser.parse(Files.newInputStream(file), new ParserHandler(entry));
+        return entry;
+    }
+
+    private void moveToNextQueue(Entry file) throws InterruptedException {
         successQueue.put(file);
-        logger.info("--> put file \'{}\' : successQueue", file.getFileName());
+        logger.info("--> put entity : successQueue");
     }
 
     private void notProcessed(Path file, String description) {
         logger.warn("!!! File: \'{}\' not processed; {}", file, description);
+    }
+
+    private class ParserHandler extends DefaultHandler {
+        private final Entry entry;
+        private String thisElement;
+
+        public ParserHandler(Entry entry) {
+            this.entry = entry;
+        }
+
+        @Override
+        public void startDocument() throws SAXException {
+            System.out.println("Start parse XML...");
+        }
+
+        @Override
+        public void endElement(String namespaceURI, String localName, String qName) throws SAXException {
+            System.out.println("Stop parse XML...");
+        }
+
+        @Override
+        public void startElement(String namespaceURI, String localName, String qName, Attributes atts) throws SAXException {
+            thisElement = qName;
+        }
+
+        @Override
+        public void characters(char[] ch, int start, int length) throws SAXException {
+            if (thisElement.equals("name")) {
+                doc.setName(new String(ch, start, length));
+            }
+
+        }
     }
 
     private class TestErrorHandler implements ErrorHandler {
