@@ -5,17 +5,14 @@ import com.jolbox.bonecp.BoneCPDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.ComponentScan;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.*;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.HibernateJpaDialect;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
-import ru.shishmakov.core.PackageMarkerCore;
+import ru.shishmakov.core.*;
 import ru.shishmakov.dao.PackageMarkerRepository;
 import ru.shishmakov.entity.PackageMarkerEntity;
 import ru.shishmakov.service.PackageMarkerService;
@@ -27,6 +24,8 @@ import java.nio.file.Path;
 import java.util.Properties;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.springframework.beans.factory.config.BeanDefinition.SCOPE_PROTOTYPE;
 
 /**
  * Extension of configuration for Server
@@ -131,6 +130,33 @@ public class ServerConfig {
                 }
             }
         };
+    }
+
+    @Bean(destroyMethod = "stop")
+    public Server server() {
+        return new Server() {
+            @Override
+            protected FileParser getFileParser() {
+                return fileParser();
+            }
+
+            @Override
+            protected FilePersist getFilePersist() {
+                return filePersist();
+            }
+        };
+    }
+
+    @Bean
+    @Scope(SCOPE_PROTOTYPE)
+    public FileParser fileParser() {
+        return new FileParser();
+    }
+
+    @Bean
+    @Scope(SCOPE_PROTOTYPE)
+    public FilePersist filePersist() {
+        return new FilePersist();
     }
 
     private Properties getJpaProperties() {

@@ -3,7 +3,6 @@ package ru.shishmakov.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.xml.sax.*;
 import ru.shishmakov.util.SymlinkLoops;
 
@@ -27,12 +26,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  *
  * @author Dmitriy Shishmakov
  */
-@Component
 public class FileParser {
 
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-    private static final AtomicInteger number = new AtomicInteger(0);
+    private static final AtomicInteger quantity = new AtomicInteger(0);
     private static final String ENTRY_XSD = "xml/entry.xsd";
 
     @Resource(name = "directoryQueue")
@@ -44,10 +42,12 @@ public class FileParser {
     @Autowired
     private AtomicBoolean serverLock;
 
+    private final int number = quantity.incrementAndGet();
+
     private AtomicBoolean lock = new AtomicBoolean(true);
 
     public void start() {
-        logger.info("Initialise file parser {} ...", number.incrementAndGet());
+        logger.info("Initialise file parser {} ...", number);
         try {
             while (lock.get()) {
                 final Path file = directoryQueue.take();
@@ -67,6 +67,11 @@ public class FileParser {
         } finally {
             serverLock.compareAndSet(true, false);
         }
+    }
+
+    public void stop() {
+        logger.info("Finalization parser {} ...", number);
+        lock.compareAndSet(true, false);
     }
 
     private boolean isReadyToParse(Path file) {
@@ -90,11 +95,6 @@ public class FileParser {
         } catch (SAXException | ParserConfigurationException | IOException e) {
             notProcessed(file, "schema is not valid");
         }
-    }
-
-    public void stop() {
-        logger.info("Finalization parser ...");
-        lock.compareAndSet(true, false);
     }
 
     private void moveToNextQueue(Path file) throws InterruptedException {

@@ -15,7 +15,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static java.nio.file.StandardWatchEventKinds.*;
+import static java.nio.file.StandardWatchEventKinds.ENTRY_CREATE;
 
 /**
  * Service for retrieving files.
@@ -23,7 +23,7 @@ import static java.nio.file.StandardWatchEventKinds.*;
  * @author Dmitriy Shishmakov
  */
 @Component
-public class DirectoryFileWatcher {
+public class FileWatcher {
 
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
@@ -48,6 +48,11 @@ public class DirectoryFileWatcher {
         watchNewFiles(dir);
     }
 
+    public void stop() {
+        logger.info("Finalization watcher ...");
+        lock.compareAndSet(true, false);
+    }
+
     private void watchNewFiles(Path dir) {
         final FileSystem fileSystem = FileSystems.getDefault();
         final PathMatcher matcher = fileSystem.getPathMatcher("glob:*.xml");
@@ -58,7 +63,7 @@ public class DirectoryFileWatcher {
             latch.await();
             while (lock.get()) {
                 watchKey = watchService.poll(500, TimeUnit.MILLISECONDS);
-                if(watchKey == null){
+                if (watchKey == null) {
                     continue;
                 }
                 for (WatchEvent<?> watchEvent : watchKey.pollEvents()) {
@@ -101,10 +106,5 @@ public class DirectoryFileWatcher {
     private void moveToNextQueue(Path file) throws InterruptedException {
         directoryQueue.put(file);
         logger.info("--> put file \'{}\' : directoryQueue", file.getFileName());
-    }
-
-    public void stop() {
-        logger.info("Finalization watcher ...");
-        lock.compareAndSet(true, false);
     }
 }

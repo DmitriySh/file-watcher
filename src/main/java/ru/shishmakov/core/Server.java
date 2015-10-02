@@ -4,18 +4,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.stereotype.Component;
 import ru.shishmakov.config.AppConfig;
 import ru.shishmakov.core.exception.ConnectionlessException;
 import ru.shishmakov.core.exception.DirectoryException;
 import ru.shishmakov.core.exception.SymbolicLinkLoopException;
 
-import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import javax.sql.DataSource;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
-import java.nio.file.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.DatabaseMetaData;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
@@ -30,19 +30,12 @@ import static ru.shishmakov.util.SymlinkLoops.isSymbolicLinkLoop;
  *
  * @author Dmitriy Shishmakov
  */
-@Component("server")
-public class Server {
+public abstract class Server {
 
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     @Autowired
     private DataSource dataSource;
-
-    @Autowired
-    private DirectoryFileWatcher watcher;
-
-    @Autowired
-    private FileParser fileParser;
 
     @Resource(name = "directoryQueue")
     private BlockingQueue<Path> directoryQueue;
@@ -64,6 +57,13 @@ public class Server {
     @Autowired
     private AtomicBoolean lock;
 
+    @Autowired
+    private FileWatcher watcher;
+
+    private FileParser[] parsers;
+
+    private FilePersist[] persists;
+
     public void start() throws InterruptedException {
         logger.info("Initialise server ...");
 
@@ -82,7 +82,9 @@ public class Server {
             // watcher task
             runWatcherTask(path);
             // parser task
-            runFileParser();
+            parsers = runParserTasks(7);
+            // persist task
+            persists = runPersistTasks(1);
             logger.info("Start the server: {}. Watch on: {}", this.getClass().getSimpleName(), path);
         } catch (Throwable e) {
             logger.error("Error starting the server", e);
@@ -90,11 +92,15 @@ public class Server {
         }
     }
 
-    @PreDestroy
     public void stop() {
         logger.info("Finalization server ...");
         watcher.stop();
-        fileParser.stop();
+        for (FileParser parser : parsers) {
+            parser.stop();
+        }
+        for (FilePersist persist : persists) {
+            persist.stop();
+        }
         logger.info("Shutdown the server: {}", this.getClass().getSimpleName());
     }
 
@@ -168,13 +174,34 @@ public class Server {
         });
     }
 
-    private void runFileParser() {
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                fileParser.start();
-            }
-        });
+    private FileParser[] runParserTasks(int count) {
+        final FileParser[] parsers = new FileParser[count];
+        for (int i = 0; i < count; i++) {
+            final FileParser fileParser = getFileParser();
+            parsers[i] = fileParser;
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    fileParser.start();
+                }
+            });
+        }
+        return parsers;
+    }
+
+    private FilePersist[] runPersistTasks(int count) {
+        final FilePersist[] persists = new FilePersist[count];
+        for (int i = 0; i < count; i++) {
+            final FilePersist filePersist = getFilePersist();
+            persists[i] = filePersist;
+            executor.execute(new Runnable() {
+                @Override
+                public void run() {
+                    filePersist.start();
+                }
+            });
+        }
+        return persists;
     }
 
     private void registerShutdownHook() {
@@ -186,4 +213,8 @@ public class Server {
             }
         });
     }
+
+    protected abstract FileParser getFileParser();
+
+    protected abstract FilePersist getFilePersist();
 }
