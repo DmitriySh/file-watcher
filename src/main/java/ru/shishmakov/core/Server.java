@@ -41,6 +41,9 @@ public class Server {
     @Autowired
     private DirectoryFileWatcher watcher;
 
+    @Autowired
+    private FileParser fileParser;
+
     @Resource(name = "directoryQueue")
     private BlockingQueue<Path> directoryQueue;
 
@@ -65,7 +68,7 @@ public class Server {
     private AtomicBoolean lock;
 
     public void start() throws InterruptedException {
-        logger.debug("Initialise server ...");
+        logger.info("Initialise server ...");
 
         try {
             // hook
@@ -78,11 +81,11 @@ public class Server {
             // directory
             final Path path = checkDirectory();
             // load factor of queues
-            runLoadFactorTask(directoryQueue, "directoryQueue");
-            runLoadFactorTask(successQueue, "successQueue");
-            runLoadFactorTask(failQueue, "failQueue");
+            runLoadFactorTask();
             // watcher task
             runWatcherTask(path);
+            // parser task
+            runFileParser();
             logger.info("Start the server: {}. Watch on: {}", this.getClass().getSimpleName(), path);
         } catch (Throwable e) {
             logger.error("Error starting the server", e);
@@ -92,8 +95,9 @@ public class Server {
 
     @PreDestroy
     public void stop() {
-        logger.debug("Finalization server ...");
-
+        logger.info("Finalization server ...");
+        watcher.stop();
+        fileParser.stop();
         logger.info("Shutdown the server: {}", this.getClass().getSimpleName());
     }
 
@@ -121,16 +125,22 @@ public class Server {
         return false;
     }
 
-    private void runLoadFactorTask(final BlockingQueue<Path> queue, final String nameQueue) {
+    private void runLoadFactorTask() {
         scheduled.scheduleWithFixedDelay(new Runnable() {
             @Override
             public void run() {
-                final int size = queue.size();
-                final int capacity = queue.remainingCapacity() + size;
-                final int percent = size * 100 / capacity;
-                logger.debug("{}: {}/{} = {}%", nameQueue, size, capacity, percent);
+                percentages(directoryQueue, "directoryQueue");
+                percentages(successQueue, "successQueue");
+                percentages(failQueue, "failQueue");
             }
-        }, 5, 5, TimeUnit.SECONDS);
+        }, 5, 15, TimeUnit.SECONDS);
+    }
+
+    private void percentages(BlockingQueue<Path> queue, String queueName) {
+        final int size = queue.size();
+        final int capacity = queue.remainingCapacity() + size;
+        final int percent = size * 100 / capacity;
+        logger.debug("{}: {}/{} = {}%", queueName, size, capacity, percent);
     }
 
     private Path checkDirectory() {
@@ -159,6 +169,15 @@ public class Server {
             @Override
             public void run() {
                 watcher.start(path);
+            }
+        });
+    }
+
+    private void runFileParser() {
+        executor.execute(new Runnable() {
+            @Override
+            public void run() {
+                fileParser.start();
             }
         });
     }

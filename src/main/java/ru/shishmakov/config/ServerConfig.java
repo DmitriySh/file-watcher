@@ -93,21 +93,21 @@ public class ServerConfig {
 
     @Bean(name = "directoryQueue")
     public BlockingQueue<Path> directoryQueue() {
-        return new ArrayBlockingQueue<>(1024);
+        return new ArrayBlockingQueue<>(2048);
     }
 
     @Bean(name = "successQueue")
     public BlockingQueue<Path> successQueue() {
-        return new ArrayBlockingQueue<>(1024);
+        return new ArrayBlockingQueue<>(2048);
     }
 
     @Bean(name = "failQueue")
     public BlockingQueue<Path> failQueue() {
-        return new ArrayBlockingQueue<>(1024);
+        return new ArrayBlockingQueue<>(2048);
     }
 
     @Bean
-    public AtomicBoolean lock() {
+    public AtomicBoolean serverLock() {
         return new AtomicBoolean(true);
     }
 

@@ -13,6 +13,7 @@ import java.nio.file.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.nio.file.StandardWatchEventKinds.*;
@@ -35,13 +36,14 @@ public class DirectoryFileWatcher {
     private BlockingQueue<Path> directoryQueue;
 
     @Autowired
-    private AtomicBoolean lock;
+    private AtomicBoolean serverLock;
+
+    private AtomicBoolean lock = new AtomicBoolean(true);
 
     final CountDownLatch latch = new CountDownLatch(2);
 
     public void start(Path dir) {
-        logger.debug("Initialise file watcher ...");
-
+        logger.info("Initialise file watcher ...");
 
         executor.execute(buildIterateFilesTask(dir));
         watchNewFiles(dir);
@@ -53,10 +55,13 @@ public class DirectoryFileWatcher {
         try (WatchService watchService = fileSystem.newWatchService()) {
             dir.register(watchService, ENTRY_CREATE);
             WatchKey watchKey = null;
-            while (true) {
-                latch.countDown();
-                latch.await();
-                watchKey = watchService.take();
+            latch.countDown();
+            latch.await();
+            while (lock.get()) {
+                watchKey = watchService.poll(500, TimeUnit.MILLISECONDS);
+                if(watchKey == null){
+                    continue;
+                }
                 for (WatchEvent<?> watchEvent : watchKey.pollEvents()) {
                     final WatchEvent.Kind<?> kind = watchEvent.<Path>kind();
                     final Path path = ((WatchEvent<Path>) watchEvent).context();
@@ -71,7 +76,7 @@ public class DirectoryFileWatcher {
         } catch (Exception e) {
             logger.error("Error in file watcher", e);
         } finally {
-            lock.compareAndSet(true, false);
+            serverLock.compareAndSet(true, false);
         }
     }
 
@@ -84,28 +89,23 @@ public class DirectoryFileWatcher {
                     latch.countDown();
                     latch.await();
                     for (Path file : stream) {
-                        final Path temp = dir.resolve("crated" + i++ + ".xml");
-                        Files.deleteIfExists(temp);
-                        Files.createFile(temp);
-                        Thread.sleep(2000);
                         putFile(file);
                     }
                 } catch (Exception e) {
                     logger.error("Error in file watcher", e);
-                    lock.compareAndSet(true, false);
+                    serverLock.compareAndSet(true, false);
                 }
             }
         };
     }
 
     private void putFile(Path file) throws InterruptedException {
-        logger.debug("Put file: \'{}\' into directoryQueue", file.getFileName());
         directoryQueue.put(file);
+        logger.debug("--> put file \'{}\' : directoryQueue", file.getFileName());
     }
 
-    @PreDestroy
     public void stop() {
-        logger.debug("Finalization watcher ...");
-
+        logger.info("Finalization watcher ...");
+        lock.compareAndSet(true, false);
     }
 }
