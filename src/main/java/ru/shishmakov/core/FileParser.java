@@ -4,9 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-import org.xml.sax.XMLReader;
+import org.xml.sax.*;
 import ru.shishmakov.util.SymlinkLoops;
 
 import javax.annotation.Resource;
@@ -15,6 +13,7 @@ import javax.xml.parsers.SAXParserFactory;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.SchemaFactory;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -34,7 +33,7 @@ public class FileParser {
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
     private static final AtomicInteger number = new AtomicInteger(0);
-    private static final String ENTRY_XSD = "entry.xsd";
+    private static final String ENTRY_XSD = "xml/entry.xsd";
 
     @Resource(name = "directoryQueue")
     private BlockingQueue<Path> directoryQueue;
@@ -54,8 +53,9 @@ public class FileParser {
                 final Path file = directoryQueue.take();
                 logger.debug("<-- take file \'{}\' : directoryQueue", file.getFileName());
 
-                if (isReady(file)) {
+                if (isReadyToParse(file)) {
                     parse(file);
+                    continue;
                 }
                 final String description = String.format("exists: %s; symlink loop: %s; readable: %s; file: %s",
                         Files.exists(file), SymlinkLoops.isSymbolicLinkLoop(file),
@@ -69,23 +69,25 @@ public class FileParser {
         }
     }
 
-    private boolean isReady(Path file) {
-        return Files.exists(file) && Files.isRegularFile(file) && Files.isReadable(file) && SymlinkLoops.isNotSymbolicLinkLoop(file);
+    private boolean isReadyToParse(Path file) {
+        return Files.exists(file) && Files.isRegularFile(file) &&
+                Files.isReadable(file) && SymlinkLoops.isNotSymbolicLinkLoop(file);
     }
 
     private void parse(Path file) throws InterruptedException {
         try {
-            SchemaFactory schemaFactory = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
-            SAXParserFactory factory = SAXParserFactory.newInstance();
+            final InputStream xsd = getClass().getClassLoader().getResourceAsStream(ENTRY_XSD);
+            final SchemaFactory schemaFactory = SchemaFactory.newInstance("http://www.w3.org/2001/XMLSchema");
+            final SAXParserFactory factory = SAXParserFactory.newInstance();
             factory.setValidating(false);
             factory.setNamespaceAware(true);
-            factory.setSchema(schemaFactory.newSchema(new StreamSource(getClass().getResourceAsStream(ENTRY_XSD))));
+            factory.setSchema(schemaFactory.newSchema(new StreamSource(xsd)));
 
-            XMLReader reader = factory.newSAXParser().getXMLReader();
+            final XMLReader reader = factory.newSAXParser().getXMLReader();
+            reader.setErrorHandler(new TestErrorHandler());
             reader.parse(new InputSource(Files.newBufferedReader(file, StandardCharsets.UTF_8)));
             moveToNextQueue(file);
         } catch (SAXException | ParserConfigurationException | IOException e) {
-            logger.error("Error", e);
             notProcessed(file, "schema is not valid");
         }
     }
@@ -102,5 +104,22 @@ public class FileParser {
 
     private void notProcessed(Path file, String description) {
         logger.warn("!!! File: \'{}\' not processed; {}", file, description);
+    }
+
+    private class TestErrorHandler implements ErrorHandler {
+        @Override
+        public void warning(SAXParseException e) throws SAXException {
+            throw e;
+        }
+
+        @Override
+        public void error(SAXParseException e) throws SAXException {
+            throw e;
+        }
+
+        @Override
+        public void fatalError(SAXParseException e) throws SAXException {
+            throw e;
+        }
     }
 }
