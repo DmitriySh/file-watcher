@@ -50,9 +50,6 @@ public class Server {
     @Resource(name = "successQueue")
     private BlockingQueue<Path> successQueue;
 
-    @Resource(name = "failQueue")
-    private BlockingQueue<Path> failQueue;
-
     @Autowired
     @Qualifier("eventExecutor")
     private ExecutorService executor;
@@ -131,7 +128,6 @@ public class Server {
             public void run() {
                 percentages(directoryQueue, "directoryQueue");
                 percentages(successQueue, "successQueue");
-                percentages(failQueue, "failQueue");
             }
         }, 5, 15, TimeUnit.SECONDS);
     }
@@ -155,7 +151,6 @@ public class Server {
         }
         try {
             Files.createDirectories(path.resolve("success"));
-            Files.createDirectories(path.resolve("fail"));
         } catch (IOException e) {
             final String message = String.format("Directories 'success'/'fail' can't be created in: '%s'", path);
             throw new DirectoryException(message, e);

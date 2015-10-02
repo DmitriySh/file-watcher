@@ -18,6 +18,10 @@ public final class SymlinkLoops {
 
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
+    public static boolean isNotSymbolicLinkLoop(Path path) {
+        return !isSymbolicLinkLoop(path);
+    }
+
     public static boolean isSymbolicLinkLoop(Path path) {
         if (!Files.isSymbolicLink(path)) {
             return false;

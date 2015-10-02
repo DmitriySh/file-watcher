@@ -101,11 +101,6 @@ public class ServerConfig {
         return new ArrayBlockingQueue<>(2048);
     }
 
-    @Bean(name = "failQueue")
-    public BlockingQueue<Path> failQueue() {
-        return new ArrayBlockingQueue<>(2048);
-    }
-
     @Bean
     public AtomicBoolean serverLock() {
         return new AtomicBoolean(true);

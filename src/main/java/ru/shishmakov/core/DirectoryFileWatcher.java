@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
 import java.lang.invoke.MethodHandles;
 import java.nio.file.*;
@@ -66,7 +65,7 @@ public class DirectoryFileWatcher {
                     final WatchEvent.Kind<?> kind = watchEvent.<Path>kind();
                     final Path path = ((WatchEvent<Path>) watchEvent).context();
                     if (kind == ENTRY_CREATE && matcher.matches(path)) {
-                        putFile(path);
+                        moveToNextQueue(path);
                     }
                 }
                 if (!watchKey.reset()) {
@@ -89,7 +88,7 @@ public class DirectoryFileWatcher {
                     latch.countDown();
                     latch.await();
                     for (Path file : stream) {
-                        putFile(file);
+                        moveToNextQueue(file);
                     }
                 } catch (Exception e) {
                     logger.error("Error in file watcher", e);
@@ -99,7 +98,7 @@ public class DirectoryFileWatcher {
         };
     }
 
-    private void putFile(Path file) throws InterruptedException {
+    private void moveToNextQueue(Path file) throws InterruptedException {
         directoryQueue.put(file);
         logger.debug("--> put file \'{}\' : directoryQueue", file.getFileName());
     }
