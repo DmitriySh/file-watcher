@@ -63,8 +63,8 @@ public class DirectoryFileWatcher {
                 }
                 for (WatchEvent<?> watchEvent : watchKey.pollEvents()) {
                     final WatchEvent.Kind<?> kind = watchEvent.<Path>kind();
-                    final Path path = ((WatchEvent<Path>) watchEvent).context();
-                    if (kind == ENTRY_CREATE && matcher.matches(path)) {
+                    final Path path = dir.resolve(((WatchEvent<Path>) watchEvent).context());
+                    if (kind == ENTRY_CREATE && matcher.matches(path.getFileName())) {
                         moveToNextQueue(path);
                     }
                 }
@@ -100,7 +100,7 @@ public class DirectoryFileWatcher {
 
     private void moveToNextQueue(Path file) throws InterruptedException {
         directoryQueue.put(file);
-        logger.debug("--> put file \'{}\' : directoryQueue", file.getFileName());
+        logger.info("--> put file \'{}\' : directoryQueue", file.getFileName());
     }
 
     public void stop() {

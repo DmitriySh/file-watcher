@@ -51,7 +51,7 @@ public class FileParser {
         try {
             while (lock.get()) {
                 final Path file = directoryQueue.take();
-                logger.debug("<-- take file \'{}\' : directoryQueue", file.getFileName());
+                logger.info("<-- take file \'{}\' : directoryQueue", file.getFileName());
 
                 if (isReadyToParse(file)) {
                     parse(file);
@@ -99,7 +99,7 @@ public class FileParser {
 
     private void moveToNextQueue(Path file) throws InterruptedException {
         successQueue.put(file);
-        logger.debug("--> put file \'{}\' : successQueue", file.getFileName());
+        logger.info("--> put file \'{}\' : successQueue", file.getFileName());
     }
 
     private void notProcessed(Path file, String description) {
