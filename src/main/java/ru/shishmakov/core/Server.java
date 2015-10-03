@@ -5,9 +5,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import ru.shishmakov.config.AppConfig;
-import ru.shishmakov.core.exception.ConnectionlessException;
 import ru.shishmakov.core.exception.DirectoryException;
 import ru.shishmakov.core.exception.SymbolicLinkLoopException;
+import ru.shishmakov.util.DbUtil;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
@@ -23,7 +23,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static ru.shishmakov.util.SymlinkLoops.isSymbolicLinkLoop;
+import static ru.shishmakov.util.SymlinkLoopUtil.isSymbolicLinkLoop;
 
 /**
  * Manage life cycle of File Watch Server.
@@ -71,10 +71,12 @@ public abstract class Server {
             // hook
             registerShutdownHook();
             // db
-            while (!hasDbConnection()) {
+            while (!DbUtil.hasDbConnection(dataSource)) {
                 logger.debug("Trying to check the DB connection again ...");
                 Thread.sleep(10_000);
             }
+            final DatabaseMetaData metaData = dataSource.getConnection().getMetaData();
+            logger.info("Connected to DB on {}: driver: {}", metaData.getURL(), metaData.getDriverVersion());
             // directory
             final Path path = checkDirectory();
             // load factor of queues
@@ -123,21 +125,6 @@ public abstract class Server {
             } catch (InterruptedException ignored) {
             }
         }
-    }
-
-    public boolean hasDbConnection() {
-        logger.debug("Check connection to DB ... ");
-        try {
-            if (!dataSource.getConnection().isValid(5)) {
-                throw new ConnectionlessException("The DB connection is not established");
-            }
-            final DatabaseMetaData metaData = dataSource.getConnection().getMetaData();
-            logger.info("Connected to DB on {}: driver: {}", metaData.getURL(), metaData.getDriverVersion());
-            return true;
-        } catch (Exception e) {
-            logger.error("Error: {}", e.getMessage());
-        }
-        return false;
     }
 
     private void runLoadFactorTask() {

@@ -14,7 +14,7 @@ import java.util.Map;
 /**
  * @author Dmitriy Shishmakov
  */
-public final class SymlinkLoops {
+public final class SymlinkLoopUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 

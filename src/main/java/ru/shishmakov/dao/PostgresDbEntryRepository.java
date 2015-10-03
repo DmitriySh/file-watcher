@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import ru.shishmakov.entity.Entry;
 
+import javax.annotation.PostConstruct;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
@@ -18,11 +19,12 @@ import javax.persistence.TypedQuery;
 @Repository("postgresRepository")
 public class PostgresDbEntryRepository implements DbRepository<Entry, Long> {
 
+    @PersistenceContext
     private EntityManager em;
 
-    @PersistenceContext
-    public void setEntityManager(EntityManager entityManager) {
-        this.em = entityManager;
+    @PostConstruct
+    public void postCreate(){
+        System.out.println("EntityManager: " + em);
     }
 
     @Transactional

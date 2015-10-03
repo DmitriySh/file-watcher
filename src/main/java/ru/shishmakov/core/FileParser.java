@@ -9,7 +9,7 @@ import org.xml.sax.*;
 import org.xml.sax.helpers.DefaultHandler;
 import ru.shishmakov.entity.Entry;
 import ru.shishmakov.util.CharonBoat;
-import ru.shishmakov.util.SymlinkLoops;
+import ru.shishmakov.util.SymlinkLoopUtil;
 
 import javax.annotation.Resource;
 import javax.xml.parsers.ParserConfigurationException;
@@ -69,7 +69,7 @@ public class FileParser {
                     continue;
                 }
                 final String description = String.format("exists: %s; symlink loop: %s; readable: %s; file: %s",
-                        Files.exists(file), SymlinkLoops.isSymbolicLinkLoop(file),
+                        Files.exists(file), SymlinkLoopUtil.isSymbolicLinkLoop(file),
                         Files.isReadable(file), Files.isRegularFile(file));
                 notProcessed(file, description);
             }
@@ -87,7 +87,7 @@ public class FileParser {
 
     private boolean isReadyToParse(Path file) {
         return Files.exists(file) && Files.isRegularFile(file) &&
-                Files.isReadable(file) && SymlinkLoops.isNotSymbolicLinkLoop(file);
+                Files.isReadable(file) && SymlinkLoopUtil.isNotSymbolicLinkLoop(file);
     }
 
     private void parse(Path file) throws InterruptedException {

@@ -14,7 +14,6 @@ import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 import ru.shishmakov.core.*;
 import ru.shishmakov.dao.PackageMarkerRepository;
-import ru.shishmakov.entity.Entry;
 import ru.shishmakov.entity.PackageMarkerEntity;
 import ru.shishmakov.service.PackageMarkerService;
 import ru.shishmakov.util.CharonBoat;
