@@ -17,6 +17,7 @@ import ru.shishmakov.dao.PackageMarkerRepository;
 import ru.shishmakov.entity.Entry;
 import ru.shishmakov.entity.PackageMarkerEntity;
 import ru.shishmakov.service.PackageMarkerService;
+import ru.shishmakov.util.CharonBoat;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManagerFactory;
@@ -97,7 +98,7 @@ public class ServerConfig {
     }
 
     @Bean(name = "successQueue")
-    public BlockingQueue<Entry> successQueue() {
+    public BlockingQueue<CharonBoat> successQueue() {
         return new ArrayBlockingQueue<>(2048);
     }
 
@@ -106,31 +107,14 @@ public class ServerConfig {
         return new AtomicBoolean(true);
     }
 
-    @Bean(name = "eventExecutor", destroyMethod = "close")
+    @Bean(name = "eventExecutor")
     public ExecutorService eventExecutor() {
-        return new ThreadPoolExecutor(0, 100, 60L, TimeUnit.SECONDS, new SynchronousQueue<Runnable>()) {
-            public void close() {
-                try {
-                    super.shutdown();
-                    super.awaitTermination(3, TimeUnit.SECONDS);
-                } catch (InterruptedException ignored) {
-                }
-            }
-        };
+        return Executors.newCachedThreadPool();
     }
 
-    @Bean(name = "scheduledExecutor", destroyMethod = "close")
+    @Bean(name = "scheduledExecutor")
     public ScheduledExecutorService scheduledExecutor() {
-        final int corePoolSize = Runtime.getRuntime().availableProcessors() * 2;
-        return new ScheduledThreadPoolExecutor(corePoolSize) {
-            public void close() {
-                try {
-                    super.shutdown();
-                    super.awaitTermination(3, TimeUnit.SECONDS);
-                } catch (InterruptedException ignored) {
-                }
-            }
-        };
+        return Executors.newSingleThreadScheduledExecutor();
     }
 
     @Bean(destroyMethod = "stop")

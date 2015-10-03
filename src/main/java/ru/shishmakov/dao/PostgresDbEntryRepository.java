@@ -36,6 +36,7 @@ public class PostgresDbEntryRepository implements DbRepository<Entry, Long> {
     @Transactional
     @Override
     public <S extends Entry> S save(S entity) {
+        System.out.println("EntityManager: " + em);
         if (entity.getId() == null) {
             em.persist(entity);
             return entity;

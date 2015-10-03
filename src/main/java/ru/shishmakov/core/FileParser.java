@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.*;
 import org.xml.sax.helpers.DefaultHandler;
 import ru.shishmakov.entity.Entry;
+import ru.shishmakov.util.CharonBoat;
 import ru.shishmakov.util.SymlinkLoops;
 
 import javax.annotation.Resource;
@@ -44,7 +45,7 @@ public class FileParser {
     private BlockingQueue<Path> directoryQueue;
 
     @Resource(name = "successQueue")
-    private BlockingQueue<Entry> successQueue;
+    private BlockingQueue<CharonBoat> successQueue;
 
     @Autowired
     private AtomicBoolean serverLock;
@@ -102,7 +103,7 @@ public class FileParser {
             reader.setErrorHandler(new TestErrorHandler());
             reader.parse(new InputSource(Files.newBufferedReader(file, StandardCharsets.UTF_8)));
             final Entry entry = buildTransientEntry(factory, file);
-            moveToNextQueue(entry);
+            moveToNextQueue(CharonBoat.build(file, entry));
         } catch (SAXException | ParserConfigurationException | IOException e) {
             notProcessed(file, "schema is not valid");
         }
@@ -116,9 +117,9 @@ public class FileParser {
         return entry;
     }
 
-    private void moveToNextQueue(Entry file) throws InterruptedException {
+    private void moveToNextQueue(CharonBoat boat) throws InterruptedException {
         while (lock.get()) {
-            if (!successQueue.offer(file, 200, TimeUnit.MILLISECONDS)) {
+            if (!successQueue.offer(boat, 200, TimeUnit.MILLISECONDS)) {
                 continue;
             }
             logger.info("--> put transient entity : successQueue");

@@ -101,6 +101,18 @@ public abstract class Server {
         for (FilePersist persist : persists) {
             persist.stop();
         }
+        try {
+            executor.shutdown();
+            executor.awaitTermination(1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException ignored) {
+        }
+
+        try {
+            scheduled.shutdown();
+            scheduled.awaitTermination(1000, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException ignored) {
+        }
+
         logger.info("Shutdown the server: {}", this.getClass().getSimpleName());
     }
 
@@ -135,7 +147,7 @@ public abstract class Server {
                 percentages(directoryQueue, "directoryQueue");
                 percentages(successQueue, "successQueue");
             }
-        }, 5, 15, TimeUnit.SECONDS);
+        }, 2, 15, TimeUnit.SECONDS);
     }
 
     private void percentages(BlockingQueue<Path> queue, String queueName) {
