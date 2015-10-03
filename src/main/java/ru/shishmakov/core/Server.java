@@ -84,7 +84,7 @@ public abstract class Server {
             // parser task
             parsers = runParserTasks(7);
             // persist task
-            persists = runPersistTasks(1);
+            persists = runPersistTasks(7);
             logger.info("Start the server: {}. Watch on: {}", this.getClass().getSimpleName(), path);
         } catch (Throwable e) {
             logger.error("Error starting the server", e);

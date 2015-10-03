@@ -8,7 +8,6 @@ import ru.shishmakov.dao.DbRepository;
 import ru.shishmakov.entity.Entry;
 
 
-import java.util.UUID;
 
 /**
  * Access to domain type {@link Entry} by instance of DAO object.
