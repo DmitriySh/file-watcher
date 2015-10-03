@@ -28,4 +28,12 @@ public class CharonBoat {
     public Entry getEntry() {
         return entry;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+                "file=" + file.getFileName() +
+                ", entry=" + entry +
+                '}';
+    }
 }

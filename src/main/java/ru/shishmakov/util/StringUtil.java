@@ -33,7 +33,9 @@ public class StringUtil {
         }
 
         // check length next
+        String truncation = StringUtils.EMPTY;
         if (end > str.length()) {
+            truncation = " ...";
             end = str.length();
         }
 
@@ -45,13 +47,10 @@ public class StringUtil {
         if (start < 0) {
             start = 0;
         }
+
         if (end < 0) {
             end = 0;
         }
-
-        if (end > str.length()) {
-            return str.substring(start, end) + " ...";
-        }
-        return str.substring(start, end);
+        return str.substring(start, end) + truncation;
     }
 }
