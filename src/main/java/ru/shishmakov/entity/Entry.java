@@ -1,6 +1,7 @@
 package ru.shishmakov.entity;
 
 import org.joda.time.LocalDateTime;
+import ru.shishmakov.util.StringUtil;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -77,6 +78,10 @@ public class Entry implements Serializable {
 
     @Override
     public String toString() {
-        return "Entry [id=" + getId() + "]";
+        return "Entry{" +
+                "id=" + getId() +
+                ", content='" + StringUtil.substring(getContent(), 0, 10) + '\'' +
+                ", creationDate=" + getCreationDate() +
+                '}';
     }
 }

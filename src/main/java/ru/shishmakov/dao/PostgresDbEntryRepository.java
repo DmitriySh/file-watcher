@@ -18,8 +18,12 @@ import javax.persistence.TypedQuery;
 @Repository("postgresRepository")
 public class PostgresDbEntryRepository implements DbRepository<Entry, Long> {
 
-    @PersistenceContext
     private EntityManager em;
+
+    @PersistenceContext
+    public void setEntityManager(EntityManager entityManager) {
+        this.em = entityManager;
+    }
 
     @Transactional
     @Override

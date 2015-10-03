@@ -62,7 +62,7 @@ public class FileWatcher {
             latch.countDown();
             latch.await();
             while (lock.get()) {
-                watchKey = watchService.poll(500, TimeUnit.MILLISECONDS);
+                watchKey = watchService.poll(200, TimeUnit.MILLISECONDS);
                 if (watchKey == null) {
                     continue;
                 }
@@ -104,7 +104,12 @@ public class FileWatcher {
     }
 
     private void moveToNextQueue(Path file) throws InterruptedException {
-        directoryQueue.put(file);
-        logger.info("--> put file \'{}\' : directoryQueue", file.getFileName());
+        while (lock.get()) {
+            if (!directoryQueue.offer(file, 200, TimeUnit.MILLISECONDS)) {
+                continue;
+            }
+            logger.info("--> put file \'{}\' : directoryQueue", file.getFileName());
+            break;
+        }
     }
 }
