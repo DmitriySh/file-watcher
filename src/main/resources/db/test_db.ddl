@@ -1,4 +1,6 @@
 -- psql -U postgres -a -f <file_path>
+DROP DATABASE IF EXISTS  "test_db";
+
 CREATE DATABASE "test_db";
 \c "test_db";
 
