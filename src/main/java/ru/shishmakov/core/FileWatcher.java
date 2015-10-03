@@ -39,7 +39,7 @@ public class FileWatcher {
 
     private AtomicBoolean lock = new AtomicBoolean(true);
 
-    final CountDownLatch latch = new CountDownLatch(2);
+    final CountDownLatch latch = new CountDownLatch(1);
 
     public void start(Path dir) {
         logger.info("Initialise file watcher ...");
@@ -57,10 +57,9 @@ public class FileWatcher {
         final FileSystem fileSystem = FileSystems.getDefault();
         final PathMatcher matcher = fileSystem.getPathMatcher("glob:*.xml");
         try (WatchService watchService = fileSystem.newWatchService()) {
+            latch.await();
             dir.register(watchService, ENTRY_CREATE);
             WatchKey watchKey = null;
-            latch.countDown();
-            latch.await();
             while (lock.get()) {
                 watchKey = watchService.poll(200, TimeUnit.MILLISECONDS);
                 if (watchKey == null) {
