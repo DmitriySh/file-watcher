@@ -18,4 +18,6 @@ public interface ConfigKey {
     String DB_STATEMENTS = "db.statements";
 
     String DIRECTORY_PATH = "directory.path";
+    String PARSER_PARALLEL_TASKS = "parser.parallel.tasks";
+    String PERSIST_PARALLEL_TASKS = "persist.parallel.tasks";
 }

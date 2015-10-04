@@ -22,4 +22,8 @@ public interface AppConfig {
     Integer getDbStatements();
 
     String getDirectoryPath();
+
+    Integer getParserCount();
+
+    Integer getPersistCount();
 }

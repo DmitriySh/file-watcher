@@ -68,13 +68,23 @@ public class CommonConfig {
             @Override
             public String getDirectoryPath() {
                 final String path = environment.getRequiredProperty(ConfigKey.DIRECTORY_PATH);
-                if(StringUtils.startsWithIgnoreCase(path, "{user.home}")) {
-                    return StringUtils.replaceOnce(path,"{user.home}", System.getProperty("user.home"));
+                if (StringUtils.startsWithIgnoreCase(path, "{user.home}")) {
+                    return StringUtils.replaceOnce(path, "{user.home}", System.getProperty("user.home"));
                 }
-                if(StringUtils.startsWithIgnoreCase(path, "{user.dir}")) {
-                    return StringUtils.replaceOnce(path,"{user.dir}", System.getProperty("user.dir"));
+                if (StringUtils.startsWithIgnoreCase(path, "{user.dir}")) {
+                    return StringUtils.replaceOnce(path, "{user.dir}", System.getProperty("user.dir"));
                 }
                 return path;
+            }
+
+            @Override
+            public Integer getParserCount() {
+                return environment.getRequiredProperty(ConfigKey.PARSER_PARALLEL_TASKS, Integer.class);
+            }
+
+            @Override
+            public Integer getPersistCount() {
+                return environment.getRequiredProperty(ConfigKey.PERSIST_PARALLEL_TASKS, Integer.class);
             }
         };
     }
