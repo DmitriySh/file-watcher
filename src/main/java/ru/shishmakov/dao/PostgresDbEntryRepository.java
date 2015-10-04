@@ -22,11 +22,6 @@ public class PostgresDbEntryRepository implements DbRepository<Entry, Long> {
     @PersistenceContext
     private EntityManager em;
 
-    @PostConstruct
-    public void postCreate(){
-        System.out.println("EntityManager: " + em);
-    }
-
     @Transactional
     @Override
     public Entry findOne(final Long id) {
