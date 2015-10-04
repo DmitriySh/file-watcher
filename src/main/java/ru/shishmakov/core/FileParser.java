@@ -122,7 +122,7 @@ public class FileParser {
             if (!successQueue.offer(boat, 200, TimeUnit.MILLISECONDS)) {
                 continue;
             }
-            logger.info("--> put transient entity '{}' : successQueue", boat);
+            logger.info("--> put transient entity and file '{}' : successQueue", boat);
             break;
         }
     }
