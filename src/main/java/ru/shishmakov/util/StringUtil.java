@@ -34,8 +34,9 @@ public class StringUtil {
 
         // check length next
         String truncation = StringUtils.EMPTY;
-        if (end > str.length()) {
+        if (end < str.length()) {
             truncation = " ...";
+        }else {
             end = str.length();
         }
 
