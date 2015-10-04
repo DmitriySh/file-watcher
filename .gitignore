@@ -30,4 +30,6 @@ local.properties
 # Project files
 log_test.txt
 log.txt
+/src/main/resources/app.local.properties
+
 
