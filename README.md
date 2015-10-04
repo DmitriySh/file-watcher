@@ -7,8 +7,27 @@ This is a prototype of multithread service to watchs the directory, retrieves XM
   
 ## Rules:  
 
-  * Choose the directory which needs to be watch. 
-  * Configure the database.
-  * Successfully processed XML files move to `./success/` directory.
-  * Files have processed with fail should stay in the same directory.
+  * Choose the directory that needs to be watch. 
+  * Successfully processed XML files move to `<dir>/success/` directory.
+  * Files should stay in the same directory if they have processed with fail.
+  * XML files should have similiar content:  
+```xml  
+<?xml version="1.0" encoding="utf-8" ?>
+<Entry>
+    <!-- length of string 1024 characters -->
+    <content>Text</content>
+    <!-- local date -->
+    <creationDate>2014-01-01 00:00:00</creationDate>
+</Entry>
+```   
 
+  
+## Requirements:
+
+  * Java SE Development Kit 7 (or newer)  
+  * Gradle 2.x  
+  * PostgreSQL 9.4 (older versions might be unsupported by JDBC driver)  
+  * Git 1.7.x (or newer)  
+
+
+  
