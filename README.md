@@ -122,7 +122,7 @@ file-watcher$ java -jar target/libs/file-watcher-all-0.1.jar
 04.10.15 14:59:24 INFO  - FileWatcher          - Initialise file watcher ... (FileWatcher.java:45)
 04.10.15 14:59:24 INFO  - FileWatcher          - --> put file 'dd_link2.xml' : directoryQueue (FileWatcher.java:110)
 04.10.15 14:59:24 INFO  - FileWatcher          - --> put file 'entry_valid.xml' : directoryQueue (FileWatcher.java:110)
-04.10.15 14:59:24 INFO  - FileWatcher          - --> put file 'file3.xml.xml' : directoryQueue (FileWatcher.java:110)
+04.10.15 14:59:24 INFO  - FileWatcher          - --> put file 'file3.xml' : directoryQueue (FileWatcher.java:110)
 04.10.15 14:59:24 INFO  - FileParser           - Initialise file parser 1 ... (FileParser.java:58)
 04.10.15 14:59:24 INFO  - FileParser           - Initialise file parser 2 ... (FileParser.java:58)
 04.10.15 14:59:24 INFO  - FileParser           - Initialise file parser 3 ... (FileParser.java:58)
@@ -130,7 +130,7 @@ file-watcher$ java -jar target/libs/file-watcher-all-0.1.jar
 04.10.15 14:59:24 INFO  - FileParser           - Initialise file parser 4 ... (FileParser.java:58)
 04.10.15 14:59:24 INFO  - FileParser           - Initialise file parser 5 ... (FileParser.java:58)
 04.10.15 14:59:24 INFO  - FileParser           - <-- take file 'dd_link2.xml' : directoryQueue (FileParser.java:65)
-04.10.15 14:59:24 INFO  - FileParser           - <-- take file 'file3.xml.xml' : directoryQueue (FileParser.java:65)
+04.10.15 14:59:24 INFO  - FileParser           - <-- take file 'file3.xml' : directoryQueue (FileParser.java:65)
 04.10.15 14:59:24 INFO  - FileParser           - <-- take file 'entry_valid.xml' : directoryQueue (FileParser.java:65)
 04.10.15 14:59:24 INFO  - FilePersist          - Initialise file persist 1 ... (FilePersist.java:48)
 04.10.15 14:59:24 INFO  - FilePersist          - Initialise file persist 2 ... (FilePersist.java:48)
@@ -143,12 +143,12 @@ file-watcher$ java -jar target/libs/file-watcher-all-0.1.jar
 
 04.10.15 15:09:37 DEBUG - FileParser           - Start parse XML... (FileParser.java:144)
 04.10.15 15:09:37 DEBUG - FileParser           - Stop parse XML... (FileParser.java:149)
-04.10.15 15:09:37 INFO  - FileParser           - --> put transient entity and file '{file=file3.xml, entry=Entry{id=null, content='Text length 1024. Text le', creationDate=2014-01-01T00:00:00.000}}' : successQueue (FileParser.java:125)
-04.10.15 15:09:37 INFO  - FilePersist          - <-- take transient entity 'Entry{id=null, content='Text length 1024. Text le', creationDate=2014-01-01T00:00:00.000}' : successQueue (FilePersist.java:55)
+04.10.15 15:09:37 INFO  - FileParser           - --> put transient entity and file '{file=file3.xml, entry=Entry{id=null, content='Text length 1024. Text le ...', creationDate=2014-01-01T00:00:00.000}}' : successQueue (FileParser.java:125)
+04.10.15 15:09:37 INFO  - FilePersist          - <-- take transient entity 'Entry{id=null, content='Text length 1024. Text le ...', creationDate=2014-01-01T00:00:00.000}' : successQueue (FilePersist.java:55)
 
 ... <cut> ..
 
-04.10.15 15:09:37 INFO  - FilePersist          - persist entity 'Entry{id=1, content='Text length 1024. Text le', creationDate=2014-01-01T00:00:00.000}' (FilePersist.java:58)
+04.10.15 15:09:37 INFO  - FilePersist          - persist entity 'Entry{id=1, content='Text length 1024. Text le ...', creationDate=2014-01-01T00:00:00.000}' (FilePersist.java:58)
 04.10.15 15:09:37 INFO  - FilePersist          - move file 'file3.xml' to directory '/home/dima/link/success' (FilePersist.java:78)
 
 

@@ -5,6 +5,9 @@ import ru.shishmakov.entity.Entry;
 import java.nio.file.Path;
 
 /**
+ * Wrapper for source file and his transient entity.
+ * It is like a boat sends the soul of data to the world of the dead.
+ *
  * @author Dmitriy Shishmakov
  */
 public class CharonBoat {
