@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.shishmakov.entity.Entry;
 import ru.shishmakov.service.PostgresDbEntryService;
-import ru.shishmakov.util.CharonBoat;
+import ru.shishmakov.util.EntryWrapper;
 
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -36,7 +36,7 @@ public class FilePersist {
     PostgresDbEntryService service;
 
     @Resource(name = "successQueue")
-    private BlockingQueue<CharonBoat> successQueue;
+    private BlockingQueue<EntryWrapper> successQueue;
 
     @Autowired
     private AtomicBoolean serverLock;
@@ -48,16 +48,16 @@ public class FilePersist {
         logger.info("Initialise file persist {} ...", number);
         try {
             while (lock.get()) {
-                final CharonBoat boat = successQueue.poll(200, TimeUnit.MILLISECONDS);
-                if (boat == null) {
+                final EntryWrapper wrapper = successQueue.poll(200, TimeUnit.MILLISECONDS);
+                if (wrapper == null) {
                     continue;
                 }
-                logger.info("<-- take transient entity \'{}\' : successQueue", boat.getEntry());
+                logger.info("<-- take transient entity \'{}\' : successQueue", wrapper.getEntry());
 
-                final Entry entry = service.save(boat.getEntry());
+                final Entry entry = service.save(wrapper.getEntry());
                 logger.info("persist entity \'{}\'", entry);
 
-                moveFile(boat.getFile());
+                moveToSuccessDirectory(wrapper.getFile());
             }
         } catch (Exception e) {
             logger.error("Error in time of persisting", e);
@@ -71,7 +71,7 @@ public class FilePersist {
         lock.compareAndSet(true, false);
     }
 
-    private void moveFile(Path source) {
+    private void moveToSuccessDirectory(Path source) {
         try {
             final Path target = source.resolveSibling(Paths.get("success", source.getFileName().toString()));
             Files.move(source, target, REPLACE_EXISTING, ATOMIC_MOVE);

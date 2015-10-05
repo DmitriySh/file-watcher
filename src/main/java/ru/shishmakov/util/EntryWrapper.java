@@ -6,22 +6,21 @@ import java.nio.file.Path;
 
 /**
  * Wrapper for source file and his transient entity.
- * It is like a boat sends the soul of data to the world of the dead.
  *
  * @author Dmitriy Shishmakov
  */
-public class CharonBoat {
+public class EntryWrapper {
 
     private Path file;
     private Entry entry;
 
-    private CharonBoat(Path file, Entry entry) {
+    private EntryWrapper(Path file, Entry entry) {
         this.file = file;
         this.entry = entry;
     }
 
-    public static CharonBoat build(Path file, Entry entry) {
-        return new CharonBoat(file, entry);
+    public static EntryWrapper build(Path file, Entry entry) {
+        return new EntryWrapper(file, entry);
     }
 
     public Path getFile() {

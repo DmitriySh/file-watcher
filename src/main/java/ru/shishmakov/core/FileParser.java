@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.xml.sax.*;
 import org.xml.sax.helpers.DefaultHandler;
 import ru.shishmakov.entity.Entry;
-import ru.shishmakov.util.CharonBoat;
+import ru.shishmakov.util.EntryWrapper;
 import ru.shishmakov.util.SymlinkLoopUtil;
 
 import javax.annotation.Resource;
@@ -23,10 +23,14 @@ import java.lang.invoke.MethodHandles;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static java.nio.file.StandardCopyOption.ATOMIC_MOVE;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 /**
  * Service detects content of files.
@@ -45,7 +49,7 @@ public class FileParser {
     private BlockingQueue<Path> directoryQueue;
 
     @Resource(name = "successQueue")
-    private BlockingQueue<CharonBoat> successQueue;
+    private BlockingQueue<EntryWrapper> successQueue;
 
     @Autowired
     private AtomicBoolean serverLock;
@@ -68,10 +72,9 @@ public class FileParser {
                     parse(file);
                     continue;
                 }
-                final String description = String.format("exists: %s; symlink loop: %s; readable: %s; file: %s",
-                        Files.exists(file), SymlinkLoopUtil.isSymbolicLinkLoop(file),
-                        Files.isReadable(file), Files.isRegularFile(file));
-                notProcessed(file, description);
+                final String description = String.format("symlink loop: %s; readable: %s; file: %s",
+                        SymlinkLoopUtil.isSymbolicLinkLoop(file), Files.isReadable(file), Files.isRegularFile(file));
+                moveToFailDirectory(file, description);
             }
         } catch (Exception e) {
             logger.error("Error in file parser", e);
@@ -86,8 +89,7 @@ public class FileParser {
     }
 
     private boolean isReadyToParse(Path file) {
-        return Files.exists(file) && Files.isRegularFile(file) &&
-                Files.isReadable(file) && SymlinkLoopUtil.isNotSymbolicLinkLoop(file);
+        return Files.isRegularFile(file) && Files.isReadable(file) && SymlinkLoopUtil.isNotSymbolicLinkLoop(file);
     }
 
     private void parse(Path file) throws InterruptedException {
@@ -103,9 +105,9 @@ public class FileParser {
             reader.setErrorHandler(new TestErrorHandler());
             reader.parse(new InputSource(Files.newBufferedReader(file, StandardCharsets.UTF_8)));
             final Entry entry = buildTransientEntry(factory, file);
-            moveToNextQueue(CharonBoat.build(file, entry));
+            moveToNextQueue(EntryWrapper.build(file, entry));
         } catch (SAXException | ParserConfigurationException | IOException e) {
-            notProcessed(file, "schema is not valid");
+            moveToFailDirectory(file, "schema is not valid");
         }
     }
 
@@ -113,11 +115,11 @@ public class FileParser {
             ParserConfigurationException, SAXException, IOException {
         final Entry entry = new Entry();
         final SAXParser parser = factory.newSAXParser();
-        parser.parse(Files.newInputStream(file), new ParserHandler(entry));
+        parser.parse(Files.newInputStream(file), new ParserHandler(file, entry));
         return entry;
     }
 
-    private void moveToNextQueue(CharonBoat boat) throws InterruptedException {
+    private void moveToNextQueue(EntryWrapper boat) throws InterruptedException {
         while (lock.get()) {
             if (!successQueue.offer(boat, 200, TimeUnit.MILLISECONDS)) {
                 continue;
@@ -127,26 +129,35 @@ public class FileParser {
         }
     }
 
-    private void notProcessed(Path file, String description) {
-        logger.warn("!!! File: \'{}\' not processed; {}", file, description);
+    private void moveToFailDirectory(Path source, String description) {
+        logger.warn("!!! File: \'{}\' not processed; {}", source, description);
+        try {
+            final Path target = source.resolveSibling(Paths.get("fail", source.getFileName().toString()));
+            Files.move(source, target, REPLACE_EXISTING, ATOMIC_MOVE);
+            logger.info("move file \'{}\' to directory \'{}\'", source.getFileName(), target.getParent());
+        } catch (IOException e) {
+            logger.error("File move error", e);
+        }
     }
 
     private class ParserHandler extends DefaultHandler {
+        private final Path file;
         private final Entry entry;
         private String element;
 
-        public ParserHandler(Entry entry) {
+        public ParserHandler(Path file, Entry entry) {
+            this.file = file;
             this.entry = entry;
         }
 
         @Override
         public void startDocument() throws SAXException {
-            logger.debug("Start parse XML...");
+            logger.debug("Start parse XML: \'{}\' ...", file);
         }
 
         @Override
         public void endDocument() throws SAXException {
-            logger.debug("Stop parse XML...");
+            logger.debug("Stop parse XML: \'{}\' ...", file);
         }
 
         @Override

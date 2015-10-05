@@ -156,6 +156,7 @@ public abstract class Server {
         }
         try {
             Files.createDirectories(path.resolve("success"));
+            Files.createDirectories(path.resolve("fail"));
         } catch (IOException e) {
             final String message = String.format("Directories 'success'/'fail' can't be created in: '%s'", path);
             throw new DirectoryException(message, e);

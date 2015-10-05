@@ -16,7 +16,7 @@ import ru.shishmakov.core.*;
 import ru.shishmakov.dao.PackageMarkerRepository;
 import ru.shishmakov.entity.PackageMarkerEntity;
 import ru.shishmakov.service.PackageMarkerService;
-import ru.shishmakov.util.CharonBoat;
+import ru.shishmakov.util.EntryWrapper;
 
 import javax.persistence.Entity;
 import javax.persistence.EntityManagerFactory;
@@ -97,7 +97,7 @@ public class ServerConfig {
     }
 
     @Bean(name = "successQueue")
-    public BlockingQueue<CharonBoat> successQueue() {
+    public BlockingQueue<EntryWrapper> successQueue() {
         return new ArrayBlockingQueue<>(2048);
     }
 
