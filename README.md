@@ -9,7 +9,7 @@ This is a prototype of multithread service to watchs the directory, retrieves XM
 
   * Choose the directory that needs to be watch. 
   * Successfully processed XML files move to `<dir>/success/` directory.
-  * Files should stay in the same directory if they have processed with fail.
+  * Files processed with fail should move to `<dir>/fail/` directory.
   * XML files should have similiar content:  
 ```xml  
 <?xml version="1.0" encoding="utf-8" ?>
