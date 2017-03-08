@@ -1,6 +1,9 @@
 # Java class files
 *.class
 
+# MacOS
+*.DS_Store
+
 # Eclipse
 .classpath
 .project
@@ -21,8 +24,7 @@ target/
 local.properties
 */build/
 
-
-# Package Files #
+# Package Files
 *.jar
 *.war
 *.ear
@@ -31,5 +33,3 @@ local.properties
 log_test.txt
 log.txt
 /src/main/resources/app.local.properties
-
-
