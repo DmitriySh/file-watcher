@@ -19,7 +19,7 @@ public class StringUtil {
      * @return substring from start position to end position,
      * {@code null} if null String input
      */
-    public static String substring(final String str, int start, int end) {
+    public static String substringEllipsis(final String str, int start, int end) {
         if (str == null) {
             return null;
         }

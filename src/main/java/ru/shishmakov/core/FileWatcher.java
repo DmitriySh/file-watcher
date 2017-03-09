@@ -30,16 +30,13 @@ public class FileWatcher {
     @Autowired
     @Qualifier("eventExecutor")
     private ExecutorService executor;
-
     @Resource
     private BlockingQueue<Path> directoryQueue;
-
     @Autowired
     private AtomicBoolean serverLock;
 
-    private AtomicBoolean lock = new AtomicBoolean(true);
-
-    final CountDownLatch latch = new CountDownLatch(1);
+    private final AtomicBoolean lock = new AtomicBoolean(true);
+    private final CountDownLatch latch = new CountDownLatch(1);
 
     public void start(Path dir) {
         logger.info("Initialise file watcher ...");
@@ -59,14 +56,14 @@ public class FileWatcher {
         try (WatchService watchService = fileSystem.newWatchService()) {
             latch.await();
             dir.register(watchService, ENTRY_CREATE);
-            WatchKey watchKey = null;
             while (lock.get()) {
-                watchKey = watchService.poll(200, TimeUnit.MILLISECONDS);
+                final WatchKey watchKey = watchService.poll(200, TimeUnit.MILLISECONDS);
                 if (watchKey == null) {
                     continue;
                 }
                 for (WatchEvent<?> watchEvent : watchKey.pollEvents()) {
                     final WatchEvent.Kind<?> kind = watchEvent.<Path>kind();
+                    @SuppressWarnings("unchecked")
                     final Path path = dir.resolve(((WatchEvent<Path>) watchEvent).context());
                     if (kind == ENTRY_CREATE && matcher.matches(path.getFileName())) {
                         moveToNextQueue(path);
@@ -84,20 +81,16 @@ public class FileWatcher {
     }
 
     private Runnable buildIterateFilesTask(final Path dir) {
-        return new Runnable() {
-            @Override
-            public void run() {
-                int i = 0;
-                try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "*.xml")) {
-                    latch.countDown();
-                    latch.await();
-                    for (Path file : stream) {
-                        moveToNextQueue(file);
-                    }
-                } catch (Exception e) {
-                    logger.error("Error in file watcher", e);
-                    serverLock.compareAndSet(true, false);
+        return () -> {
+            try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir, "*.xml")) {
+                latch.countDown();
+                latch.await();
+                for (Path file : stream) {
+                    moveToNextQueue(file);
                 }
+            } catch (Exception e) {
+                logger.error("Error in file watcher", e);
+                serverLock.compareAndSet(true, false);
             }
         };
     }

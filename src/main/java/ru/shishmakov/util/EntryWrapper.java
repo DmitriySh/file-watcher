@@ -10,9 +10,8 @@ import java.nio.file.Path;
  * @author Dmitriy Shishmakov
  */
 public class EntryWrapper {
-
-    private Path file;
-    private Entry entry;
+    private final Path file;
+    private final Entry entry;
 
     private EntryWrapper(Path file, Entry entry) {
         this.file = file;

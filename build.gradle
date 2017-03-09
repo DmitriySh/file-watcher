@@ -1,11 +1,9 @@
-import com.sun.org.apache.xalan.internal.xsltc.cmdline.Compile
-
 apply plugin: 'java'
 
-version = 0.1
+version = 0.2
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 buildDir = 'target'
 
@@ -14,14 +12,12 @@ repositories {
     mavenLocal()
 }
 
-tasks.withType(Compile) {
-    options.encoding = 'UTF-8'
-}
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
 dependencies {
     testCompile group: 'junit',                    name: 'junit',                   version: '4.12'
 
-    compile     group: 'org.apache.commons',       name: 'commons-lang3',           version: '3.3'
+    compile     group: 'org.apache.commons',       name: 'commons-lang3',           version: '3.5'
 
     compile     group: 'log4j',                    name: 'log4j',                   version: '1.2.17'
     compile     group: 'org.slf4j',                name: 'slf4j-log4j12',           version: '1.7.12'
@@ -33,7 +29,7 @@ dependencies {
     testCompile group: 'org.springframework',      name: 'spring-test',             version: '4.1.7.RELEASE'
     compile     group: 'org.springframework.data', name: 'spring-data-jpa',         version: '1.8.2.RELEASE'
 
-    compile     group: 'org.postgresql',           name: 'postgresql',              version: '9.4-1203-jdbc41'
+    compile     group: 'org.postgresql',           name: 'postgresql',              version: '9.4.1212'
     compile     group: 'com.jolbox',               name: 'bonecp-provider',         version: '0.7.1.RELEASE'
 
     compile     group: 'org.hibernate',            name: 'hibernate-core',          version: '4.3.11.Final'
@@ -45,10 +41,10 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.4'
+    gradleVersion = '3.4.1'
 }
 
-task printVersion << {
+task printVersion {
     logger.quiet "Version $version"
 }
 

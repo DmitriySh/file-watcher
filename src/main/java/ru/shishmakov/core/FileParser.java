@@ -1,5 +1,6 @@
 package ru.shishmakov.core;
 
+import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
@@ -47,16 +48,13 @@ public class FileParser {
 
     @Resource(name = "directoryQueue")
     private BlockingQueue<Path> directoryQueue;
-
     @Resource(name = "successQueue")
     private BlockingQueue<EntryWrapper> successQueue;
-
     @Autowired
     private AtomicBoolean serverLock;
 
     private final int number = quantity.incrementAndGet();
-
-    private AtomicBoolean lock = new AtomicBoolean(true);
+    private final AtomicBoolean lock = new AtomicBoolean(true);
 
     public void start() {
         logger.info("Initialise file parser {} ...", number);
@@ -70,7 +68,7 @@ public class FileParser {
 
                 if (isReadyToParse(file)) {
                     parse(file);
-                    continue;
+                    continue; // next file
                 }
                 final String description = String.format("symlink loop: %s; readable: %s; file: %s",
                         SymlinkLoopUtil.isSymbolicLinkLoop(file), Files.isReadable(file), Files.isRegularFile(file));
@@ -119,12 +117,12 @@ public class FileParser {
         return entry;
     }
 
-    private void moveToNextQueue(EntryWrapper boat) throws InterruptedException {
+    private void moveToNextQueue(EntryWrapper wrapper) throws InterruptedException {
         while (lock.get()) {
-            if (!successQueue.offer(boat, 200, TimeUnit.MILLISECONDS)) {
+            if (!successQueue.offer(wrapper, 200, TimeUnit.MILLISECONDS)) {
                 continue;
             }
-            logger.info("--> put transient entity and file '{}' : successQueue", boat);
+            logger.info("--> put transient entity and file '{}' : successQueue", wrapper);
             break;
         }
     }
@@ -171,7 +169,8 @@ public class FileParser {
                 entry.setContent(new String(ch, start, length));
             }
             if (element.equals("creationDate")) {
-                entry.setCreationDate(formatter.parseLocalDateTime(new String(ch, start, length)));
+                LocalDateTime localDateTime = formatter.parseLocalDateTime(new String(ch, start, length));
+                entry.setCreationDate(localDateTime);
             }
         }
     }
