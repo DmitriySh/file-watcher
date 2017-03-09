@@ -49,9 +49,7 @@ task wrapper(type: Wrapper) {
 }
 
 task printVersion {
-    doLast {
-        logger.quiet "Version $version"
-    }
+    logger.quiet "Version $version"
 }
 
 //create a single Jar with all dependencies

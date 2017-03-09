@@ -80,7 +80,7 @@ public class Entry implements Serializable {
     public String toString() {
         return "Entry{" +
                 "id=" + getId() +
-                ", content='" + StringUtil.substring(getContent(), 0, 25) + '\'' +
+                ", content='" + StringUtil.substringEllipsis(getContent(), 0, 25) + '\'' +
                 ", creationDate=" + getCreationDate() +
                 '}';
     }
