@@ -16,7 +16,7 @@ import java.io.Serializable;
         @NamedQuery(name = "Entry.findById", query = "from Entry e where e.id = :id"),})
 public class Entry implements Serializable {
 
-    public static interface QueryName {
+    public interface QueryName {
         String FIND_BY_ID = "Entry.findById";
         String CALCULATE_ENTRIES = "Entry.calculateEntries";
     }
@@ -80,7 +80,7 @@ public class Entry implements Serializable {
     public String toString() {
         return "Entry{" +
                 "id=" + getId() +
-                ", content='" + StringUtil.substring(getContent(), 0, 25) + '\'' +
+                ", content='" + StringUtil.substringEllipsis(getContent(), 0, 25) + '\'' +
                 ", creationDate=" + getCreationDate() +
                 '}';
     }
