@@ -24,8 +24,8 @@ This is a prototype of multithread service to watchs the directory, retrieves XM
   
 ## Requirements:
 
-  * Java SE Development Kit 7 (or newer)  
-  * Gradle 2.x  
+  * Java SE Development Kit 8 (or newer)  
+  * Gradle 2.x (or you could use Gradle wrapper) 
   * PostgreSQL 9.4 (older versions might be unsupported by JDBC driver)  
   * Git 1.7.x (or newer)  
 
@@ -90,6 +90,7 @@ persist.parallel.tasks=5
 ```sh
 file-watcher$ ./gradlew clean build
 
+Version 0.N
 :clean
 :compileJava
 :processResources
@@ -105,12 +106,12 @@ file-watcher$ ./gradlew clean build
 
 BUILD SUCCESSFUL
 
-Total time: 46.079 secs
+Total time: 10.437 secs
 
 ```  
   *  Run server: 
 ```sh
-file-watcher$ java -jar target/libs/file-watcher-all-0.1.jar
+file-watcher$ java -jar target/libs/file-watcher-all-0.N.jar
 
 04.10.15 14:59:24 INFO  - Server               - Initialise server ... (Server.java:68)
 04.10.15 14:59:24 DEBUG - DbUtil               - Check connection to DB ...  (DbUtil.java:18)
