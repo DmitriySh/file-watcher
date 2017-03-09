@@ -1,5 +1,6 @@
 package ru.shishmakov.core;
 
+import org.joda.time.LocalDateTime;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
@@ -171,7 +172,8 @@ public class FileParser {
                 entry.setContent(new String(ch, start, length));
             }
             if (element.equals("creationDate")) {
-                entry.setCreationDate(formatter.parseLocalDateTime(new String(ch, start, length)));
+                LocalDateTime localDateTime = formatter.parseLocalDateTime(new String(ch, start, length));
+                entry.setCreationDate(localDateTime);
             }
         }
     }
