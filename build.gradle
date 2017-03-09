@@ -45,11 +45,13 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.4'
+    gradleVersion = '3.4.1'
 }
 
-task printVersion << {
-    logger.quiet "Version $version"
+task printVersion {
+    doLast {
+        logger.quiet "Version $version"
+    }
 }
 
 //create a single Jar with all dependencies

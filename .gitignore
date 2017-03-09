@@ -23,6 +23,7 @@ target/
 .gradle/
 local.properties
 */build/
+out/
 
 # Package Files
 *.jar
