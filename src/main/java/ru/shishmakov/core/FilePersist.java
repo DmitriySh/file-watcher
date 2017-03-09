@@ -34,15 +34,13 @@ public class FilePersist {
 
     @Autowired
     PostgresDbEntryService service;
-
     @Resource(name = "successQueue")
     private BlockingQueue<EntryWrapper> successQueue;
-
     @Autowired
     private AtomicBoolean serverLock;
 
-    private final AtomicBoolean lock = new AtomicBoolean(true);
     private final int number = quantity.incrementAndGet();
+    private final AtomicBoolean lock = new AtomicBoolean(true);
 
     public void start() {
         logger.info("Initialise file persist {} ...", number);

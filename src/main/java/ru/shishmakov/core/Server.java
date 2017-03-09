@@ -8,6 +8,7 @@ import ru.shishmakov.config.AppConfig;
 import ru.shishmakov.core.exception.DirectoryException;
 import ru.shishmakov.core.exception.SymbolicLinkLoopException;
 import ru.shishmakov.util.DbUtil;
+import ru.shishmakov.util.EntryWrapper;
 
 import javax.annotation.Resource;
 import javax.sql.DataSource;
@@ -22,6 +23,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Stream;
 
 import static ru.shishmakov.util.SymlinkLoopUtil.isSymbolicLinkLoop;
 
@@ -36,32 +38,24 @@ public abstract class Server {
 
     @Autowired
     private DataSource dataSource;
-
     @Resource(name = "directoryQueue")
     private BlockingQueue<Path> directoryQueue;
-
     @Resource(name = "successQueue")
-    private BlockingQueue<Path> successQueue;
-
+    private BlockingQueue<EntryWrapper> successQueue;
+    @Autowired
+    private AppConfig config;
+    @Autowired
+    private AtomicBoolean lock;
+    @Autowired
+    private FileWatcher watcher;
     @Autowired
     @Qualifier("eventExecutor")
     private ExecutorService executor;
-
     @Autowired
     @Qualifier("scheduledExecutor")
     public ScheduledExecutorService scheduled;
 
-    @Autowired
-    private AppConfig config;
-
-    @Autowired
-    private AtomicBoolean lock;
-
-    @Autowired
-    private FileWatcher watcher;
-
     private FileParser[] parsers;
-
     private FilePersist[] persists;
 
     public void start() throws InterruptedException {
@@ -96,13 +90,10 @@ public abstract class Server {
 
     public void stop() {
         logger.info("Finalization server ...");
+
         watcher.stop();
-        for (FileParser parser : parsers) {
-            parser.stop();
-        }
-        for (FilePersist persist : persists) {
-            persist.stop();
-        }
+        Stream.of(parsers).forEach(FileParser::stop);
+        Stream.of(persists).forEach(FilePersist::stop);
         try {
             executor.shutdown();
             executor.awaitTermination(1000, TimeUnit.MILLISECONDS);
@@ -128,16 +119,13 @@ public abstract class Server {
     }
 
     private void runLoadFactorTask() {
-        scheduled.scheduleWithFixedDelay(new Runnable() {
-            @Override
-            public void run() {
-                percentages(directoryQueue, "directoryQueue");
-                percentages(successQueue, "successQueue");
-            }
+        scheduled.scheduleWithFixedDelay(() -> {
+            percentages(directoryQueue, "directoryQueue");
+            percentages(successQueue, "successQueue");
         }, 2, 15, TimeUnit.SECONDS);
     }
 
-    private void percentages(BlockingQueue<Path> queue, String queueName) {
+    private void percentages(BlockingQueue<?> queue, String queueName) {
         final int size = queue.size();
         final int capacity = queue.remainingCapacity() + size;
         final int percent = size * 100 / capacity;
@@ -166,12 +154,7 @@ public abstract class Server {
     }
 
     private void runWatcherTask(final Path path) {
-        executor.execute(new Runnable() {
-            @Override
-            public void run() {
-                watcher.start(path);
-            }
-        });
+        executor.execute(() -> watcher.start(path));
     }
 
     private FileParser[] runParserTasks(int count) {
@@ -179,12 +162,7 @@ public abstract class Server {
         for (int i = 0; i < count; i++) {
             final FileParser fileParser = getFileParser();
             parsers[i] = fileParser;
-            executor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    fileParser.start();
-                }
-            });
+            executor.execute(fileParser::start);
         }
         return parsers;
     }
@@ -194,24 +172,16 @@ public abstract class Server {
         for (int i = 0; i < count; i++) {
             final FilePersist filePersist = getFilePersist();
             persists[i] = filePersist;
-            executor.execute(new Runnable() {
-                @Override
-                public void run() {
-                    filePersist.start();
-                }
-            });
+            executor.execute(filePersist::start);
         }
         return persists;
     }
 
     private void registerShutdownHook() {
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                lock.compareAndSet(true, false);
-                logger.debug("Shutdown hook has been invoked");
-            }
-        });
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            lock.compareAndSet(true, false);
+            logger.debug("Shutdown hook has been invoked");
+        }));
     }
 
     protected abstract FileParser getFileParser();
